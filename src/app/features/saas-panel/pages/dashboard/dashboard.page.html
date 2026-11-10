@@ -1,0 +1,159 @@
+<header class="page-header">
+  <div>
+    <span class="kicker">VISIÓN GENERAL</span>
+    <h1>Dashboard SaaS</h1>
+    <p class="subtitle">Supervisa las tiendas, propietarios, planes y suscripciones de Supabase.</p>
+  </div>
+  <div class="actions">
+    <button class="btn" type="button" (click)="cargar()" [disabled]="cargando()">
+      {{ cargando() ? 'Actualizando...' : 'Actualizar' }}
+    </button>
+    <a routerLink="../tiendas" class="btn primary">+ Gestionar tiendas</a>
+  </div>
+</header>
+
+<section class="gradient hero">
+  <div class="hero-content">
+    <span class="hero-tag">PLATAFORMA MULTITIENDA</span>
+    <h2>Bienvenido a Sebas Collection SaaS</h2>
+    <p>Administra todos tus negocios desde un único centro de control.</p>
+    <div class="hero-actions">
+      <a routerLink="../tiendas" class="btn">Ver tiendas</a>
+      <a routerLink="../reportes" class="btn hero-outline">Ver reportes</a>
+    </div>
+  </div>
+  <div class="hero-decoration"><span>▦</span></div>
+</section>
+
+@if (cargando()) {
+  <div class="notice info">Consultando información real de Spring Boot y Supabase...</div>
+}
+@if (errores().length) {
+  <div class="notice error" role="alert">
+    No fue posible consultar todos los módulos. Las cifras de las consultas fallidas no deben considerarse completas.
+    @for (error of errores(); track error) { <div>{{ error }}</div> }
+  </div>
+} @else if (ultimaActualizacion()) {
+  <div class="notice info">Datos del backend · Última consulta: {{ ultimaActualizacion() }} · MRR contractual estimado, no cobros recibidos.</div>
+}
+
+<section class="cards dashboard-stats">
+  <article class="card stat">
+    <div class="label">Total de tiendas</div>
+    <div class="value">{{ indicadores().tiendasTotal }}</div>
+    <div class="detail">Negocios registrados</div>
+  </article>
+  <article class="card stat">
+    <div class="label">Tiendas activas</div>
+    <div class="value metric-green">{{ indicadores().tiendasActivas }}</div>
+    <div class="detail">Estado ACTIVA</div>
+  </article>
+  <article class="card stat">
+    <div class="label">Tiendas pendientes</div>
+    <div class="value metric-orange">{{ indicadores().tiendasPendientes }}</div>
+    <div class="detail">Pendientes de revisión</div>
+  </article>
+  <article class="card stat">
+    <div class="label">Suscripciones activas</div>
+    <div class="value metric-blue">{{ indicadores().suscripcionesActivas }}</div>
+    <div class="detail">Contratos activos y vigentes</div>
+  </article>
+</section>
+
+<section class="cards secondary-stats">
+  <article class="card stat">
+    <div class="label">Propietarios activos</div>
+    <div class="value secondary-value">{{ indicadores().propietariosActivos }}</div>
+  </article>
+  <article class="card stat">
+    <div class="label">Tiendas suspendidas</div>
+    <div class="value secondary-value metric-red">{{ indicadores().tiendasSuspendidas }}</div>
+  </article>
+  <article class="card stat">
+    <div class="label">Dominios personalizados</div>
+    <div class="value secondary-value">{{ indicadores().dominiosTotal }}</div>
+  </article>
+  <article class="card stat">
+    <div class="label">MRR contractual estimado</div>
+    <div class="value secondary-value">S/ {{ indicadores().mrrEstimado | number:'1.2-2' }}</div>
+    <div class="detail">No equivale a pagos cobrados</div>
+  </article>
+</section>
+
+<section class="charts-grid">
+  <article class="card chart-card">
+    <div class="section-heading"><div><h2>Estados de tiendas</h2><p class="subtitle">Distribución real de negocios</p></div></div>
+    @for (item of distribucionEstados(); track item.estado) {
+      <div class="chart-row">
+        <div class="chart-label">
+          <span class="legend-label"><span class="legend-dot" [ngClass]="item.estado"></span>{{ item.nombre }}</span>
+          <strong>{{ item.cantidad }} ({{ item.porcentaje }}%)</strong>
+        </div>
+        <div class="bar-track"><div class="bar-fill" [ngClass]="item.estado" [style.width.%]="item.porcentaje"></div></div>
+      </div>
+    }
+  </article>
+  <article class="card chart-card">
+    <div class="section-heading"><div><h2>Distribución por planes</h2><p class="subtitle">Suscripciones activas por plan</p></div></div>
+    @for (plan of distribucionPlanes(); track plan.id) {
+      <div class="chart-row">
+        <div class="chart-label"><span>{{ plan.nombre }}</span><strong>{{ plan.cantidad }} suscripciones</strong></div>
+        <div class="bar-track"><div class="bar-fill plan-fill" [style.width.%]="plan.porcentaje"></div></div>
+        <div class="chart-percentage">{{ plan.porcentaje }}%</div>
+      </div>
+    } @empty { <p class="note">No hay suscripciones activas para distribuir.</p> }
+  </article>
+</section>
+
+<section class="card latest-shops">
+  <div class="section-heading">
+    <div><h2>Últimas tiendas registradas</h2><p class="subtitle">Negocios incorporados al sistema</p></div>
+    <a routerLink="../tiendas" class="btn small">Ver todas</a>
+  </div>
+  <div class="table-wrap"><table>
+    <thead><tr><th>TIENDA</th><th>SUBDOMINIO</th><th>PROPIETARIO</th><th>PLAN</th><th>ESTADO</th><th>REGISTRO</th></tr></thead>
+    <tbody>
+      @for (tienda of ultimasTiendas(); track tienda.id) {
+        <tr>
+          <td class="strong">{{ tienda.nombre }}</td>
+          <td><code>{{ tienda.subdominio }}</code></td>
+          <td>{{ tienda.propietario }}</td>
+          <td>{{ tienda.plan }}</td>
+          <td><span class="badge" [ngClass]="tienda.estado">{{ tienda.estado }}</span></td>
+          <td>{{ tienda.creadaEn || '—' }}</td>
+        </tr>
+      } @empty { <tr><td colspan="6" class="empty">No se encontraron tiendas.</td></tr> }
+    </tbody>
+  </table></div>
+</section>
+
+<section class="bottom-grid">
+  <article class="card">
+    <div class="section-heading">
+      <div><h2>Actividad reciente</h2><p class="subtitle">Auditoría real del Super Admin</p></div>
+      <a routerLink="../actividad" class="btn small">Ver historial</a>
+    </div>
+    <div class="activity-list">
+      @for (evento of actividadReciente(); track evento.id) {
+        <div class="activity-item">
+          <span class="activity-icon">●</span>
+          <div class="activity-info">
+            <strong>{{ evento.accion }} · {{ evento.usuario }}</strong>
+            <p>{{ evento.descripcion }}</p>
+            <small>{{ mostrarFecha(evento.fecha) }}</small>
+          </div>
+        </div>
+      } @empty { <p class="note">Todavía no hay actividad registrada.</p> }
+    </div>
+  </article>
+  <article class="card">
+    <div class="section-heading"><div><h2>Accesos rápidos</h2><p class="subtitle">Módulos administrativos</p></div></div>
+    <div class="quick-links">
+      <a routerLink="../tiendas"><span>▦</span><div><strong>Gestionar tiendas</strong><small>Negocios y estados</small></div><span>›</span></a>
+      <a routerLink="../propietarios"><span>♙</span><div><strong>Propietarios</strong><small>Responsables y tiendas</small></div><span>›</span></a>
+      <a routerLink="../planes"><span>▤</span><div><strong>Planes comerciales</strong><small>Precios y beneficios reales</small></div><span>›</span></a>
+      <a routerLink="../suscripciones"><span>◷</span><div><strong>Suscripciones</strong><small>Contratos y vencimientos</small></div><span>›</span></a>
+    </div>
+  </article>
+</section>
+<p class="note dashboard-footer">Información consultada al backend. El MRR es una estimación contractual y no representa dinero efectivamente cobrado.</p>

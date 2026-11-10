@@ -1,0 +1,256 @@
+<!-- SEBAS COLLECTION SAAS V2 | PLANES REALES | Angular + Spring Boot + Supabase -->
+<header class="page-header">
+  <div>
+    <span class="kicker">MONETIZACIÓN</span>
+    <h1>Planes comerciales</h1>
+    <p class="subtitle">Administra los precios, beneficios y límites de tus planes SaaS.</p>
+  </div>
+  <div class="actions">
+    <button type="button" class="btn" (click)="cargarPlanes()" [disabled]="cargando() || guardando()">
+      {{ cargando() ? 'Actualizando...' : 'Actualizar' }}
+    </button>
+    <button type="button" class="btn" (click)="exportar()" [disabled]="!filtrados.length || cargando()">Exportar CSV</button>
+    <button type="button" class="btn primary" (click)="nuevo()" [disabled]="guardando()">+ Nuevo plan</button>
+  </div>
+</header>
+
+<div class="notice info">
+  <strong>Catálogo real conectado a Supabase.</strong>
+  Los precios y beneficios se guardan en PostgreSQL. Las suscripciones, cobros, permisos de VENDEDOR y
+  validaciones de los límites contratados se implementarán por separado; aún no están activos.
+</div>
+
+<section class="cards plans-stats">
+  <article class="card stat"><div class="label">Total de planes</div><div class="value">{{ estadisticas().total }}</div><div class="detail">Registros de Supabase</div></article>
+  <article class="card stat"><div class="label">Disponibles</div><div class="value metric-green">{{ estadisticas().activos }}</div><div class="detail">Marcados como activos</div></article>
+  <article class="card stat"><div class="label">Inactivos</div><div class="value metric-red">{{ estadisticas().inactivos }}</div><div class="detail">No ofrecidos como disponibles</div></article>
+  <article class="card stat"><div class="label">Por cotización</div><div class="value metric-purple">{{ estadisticas().cotizacion }}</div><div class="detail">Plan Empresarial</div></article>
+</section>
+
+@if (mensaje()) { <div class="notice success" role="status">{{ mensaje() }}</div> }
+@if (error()) { <div class="notice error" role="alert">{{ error() }}</div> }
+
+@if (formVisible) {
+  <section class="card form-panel">
+    <div class="form-heading">
+      <div>
+        <span class="kicker">CONFIGURACIÓN COMERCIAL</span>
+        <h2>{{ editandoId !== null ? 'Editar plan' : 'Crear nuevo plan' }}</h2>
+        <p class="subtitle">Los beneficios se escriben uno por línea y se guardan como JSONB.</p>
+      </div>
+      <button type="button" class="btn small" (click)="cerrarFormulario()" [disabled]="guardando()">Cerrar</button>
+    </div>
+
+    <form #planForm="ngForm" (ngSubmit)="guardar()">
+      <div class="form-grid">
+        <div class="field">
+          <label for="codigoPlan">Código del plan *</label>
+          <input id="codigoPlan" name="codigo" [(ngModel)]="form.codigo" required maxlength="50"
+                 pattern="[a-zA-Z0-9_]{3,50}" placeholder="BASICO" [readonly]="editandoId !== null" [disabled]="guardando()" />
+          @if (editandoId !== null) { <small>El código no se puede modificar.</small> }
+        </div>
+        <div class="field">
+          <label for="nombrePlan">Nombre del plan *</label>
+          <input id="nombrePlan" name="nombre" [(ngModel)]="form.nombre" required minlength="2" maxlength="100"
+                 placeholder="Profesional" [disabled]="guardando()" />
+        </div>
+        <div class="field">
+          <label for="precioPlan">Precio mensual (S/) *</label>
+          <input id="precioPlan" name="precioMensual" type="number" [(ngModel)]="form.precioMensual"
+                 required min="0" max="9999999999.99" step="0.01" [disabled]="guardando()" />
+        </div>
+        <div class="field">
+          <label for="duracionPlan">Duración en meses *</label>
+          <input id="duracionPlan" name="duracionMeses" type="number" [(ngModel)]="form.duracionMeses"
+                 required min="1" max="36" step="1" [disabled]="guardando()" />
+        </div>
+        <div class="field">
+          <label for="usuariosPlan">Máximo de cuentas internas</label>
+          <input id="usuariosPlan" name="limiteUsuarios" type="number" [(ngModel)]="form.limiteUsuarios"
+                 min="1" step="1" placeholder="Según contrato" [disabled]="guardando()" />
+        </div>
+        <div class="field">
+          <label for="productosPlan">Máximo de productos</label>
+          <input id="productosPlan" name="limiteProductos" type="number" [(ngModel)]="form.limiteProductos"
+                 min="1" step="1" placeholder="Según contrato" [disabled]="guardando()" />
+        </div>
+        <div class="field">
+          <label for="sucursalesPlan">Máximo de sucursales</label>
+          <input id="sucursalesPlan" name="limiteSucursales" type="number" [(ngModel)]="form.limiteSucursales"
+                 min="1" step="1" placeholder="Según contrato" [disabled]="guardando()" />
+        </div>
+        <div class="field wide">
+          <label for="descripcionPlan">Descripción comercial</label>
+          <textarea id="descripcionPlan" name="descripcion" [(ngModel)]="form.descripcion" rows="2"
+                    maxlength="1000" [disabled]="guardando()"></textarea>
+        </div>
+        <div class="field wide">
+          <label for="beneficiosPlan">Beneficios (uno por línea, máximo 30)</label>
+          <textarea id="beneficiosPlan" name="beneficios" [(ngModel)]="form.beneficiosTexto" rows="7"
+                    placeholder="Tienda online con subdominio&#10;Inventario y ventas básicas&#10;Soporte por WhatsApp"
+                    [disabled]="guardando()"></textarea>
+        </div>
+      </div>
+
+      <div class="plan-preview">
+        <span class="kicker">VISTA PREVIA</span>
+        <h3>{{ form.nombre || 'Nombre del plan' }}</h3>
+        <p class="preview-description">{{ form.descripcion || 'Descripción comercial' }}</p>
+        <div class="preview-price">S/ {{ (form.precioMensual || 0) | number:'1.2-2' }} <small>/ mes</small></div>
+        <div class="preview-features">
+          <span>{{ limiteTexto(form.limiteUsuarios) }} usuarios internos</span>
+          <span>{{ limiteTexto(form.limiteProductos) }} productos</span>
+          <span>{{ limiteTexto(form.limiteSucursales) }} sucursales</span>
+          @for (b of beneficiosFormulario(); track $index) { <span>{{ b }}</span> }
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn" (click)="cerrarFormulario()" [disabled]="guardando()">Cancelar</button>
+        <button type="submit" class="btn primary" [disabled]="planForm.invalid || guardando()">
+          {{ guardando() ? 'Guardando...' : editandoId !== null ? 'Guardar cambios' : 'Crear plan' }}
+        </button>
+      </div>
+    </form>
+  </section>
+}
+
+@if (planDetalle; as plan) {
+  <section class="card plan-detail">
+    <div class="form-heading">
+      <div><span class="kicker">DETALLES DEL PLAN</span><h2>{{ plan.nombre }}</h2>
+        <span class="badge" [ngClass]="plan.activo ? 'ACTIVA' : 'INACTIVO'">{{ plan.activo ? 'Disponible' : 'Inactivo' }}</span>
+      </div>
+      <button type="button" class="btn small" (click)="cerrarDetalle()">Cerrar</button>
+    </div>
+    <div class="detail-grid">
+      <div><span class="detail-label">Código</span><strong>{{ plan.codigo }}</strong></div>
+      <div><span class="detail-label">Precio mensual</span><strong>S/ {{ plan.precioMensual | number:'1.2-2' }}</strong></div>
+      <div><span class="detail-label">Vigencia</span><strong>{{ plan.duracionMeses }} mes(es)</strong></div>
+      <div><span class="detail-label">Cuentas internas</span><strong>{{ limiteTexto(plan.limiteUsuarios) }}</strong></div>
+      <div><span class="detail-label">Productos</span><strong>{{ limiteTexto(plan.limiteProductos) }}</strong></div>
+      <div><span class="detail-label">Sucursales</span><strong>{{ limiteTexto(plan.limiteSucursales) }}</strong></div>
+    </div>
+    <div class="related-section">
+      <h3>Beneficios configurados</h3>
+      <ul class="plan-features detail-benefits">
+        @for (beneficio of plan.beneficios; track $index) {
+          <li><span class="feature-check">✓</span>{{ beneficio }}</li>
+        } @empty { <li class="muted">Todavía no se han registrado beneficios.</li> }
+      </ul>
+      <p class="note">Las tiendas y suscripciones reales se mostrarán después de integrar el módulo Suscripciones.</p>
+    </div>
+    <div class="detail-actions">
+      <button type="button" class="btn primary" (click)="editar(plan)" [disabled]="guardando()">Editar plan</button>
+      @if (plan.activo) {
+        <button type="button" class="btn danger" (click)="prepararDesactivacion(plan.id)" [disabled]="guardando()">Desactivar plan</button>
+      } @else {
+        <button type="button" class="btn" (click)="activarPlan(plan.id)" [disabled]="guardando()">Activar plan</button>
+      }
+    </div>
+  </section>
+}
+
+@if (planPendiente; as plan) {
+  <section class="card confirm-panel">
+    <h2>Confirmar desactivación</h2>
+    <p>¿Deseas desactivar el plan <strong>{{ plan.nombre }}</strong>?</p>
+    <div class="notice info">
+      El cambio se guardará en Supabase. No cancela las suscripciones existentes ni modifica los datos de tiendas.
+      La restricción para nuevas contrataciones se aplicará al implementar Suscripciones.
+    </div>
+    <div class="form-actions">
+      <button type="button" class="btn" (click)="cancelarDesactivacion()" [disabled]="guardando()">Cancelar</button>
+      <button type="button" class="btn danger" (click)="confirmarDesactivacion()" [disabled]="guardando()">
+        {{ guardando() ? 'Desactivando...' : 'Sí, desactivar' }}
+      </button>
+    </div>
+  </section>
+}
+
+<section class="card filters-panel">
+  <div class="toolbar">
+    <div class="field search"><label for="buscarPlan">Buscar plan</label>
+      <input id="buscarPlan" name="busqueda" type="search" [(ngModel)]="busqueda" (ngModelChange)="reiniciarPagina()"
+             placeholder="Nombre, código o descripción..." />
+    </div>
+    <div class="field"><label for="filtroPlan">Disponibilidad</label>
+      <select id="filtroPlan" name="filtro" [(ngModel)]="filtro" (ngModelChange)="reiniciarPagina()">
+        <option value="TODOS">Todos</option><option value="ACTIVOS">Disponibles</option><option value="INACTIVOS">Inactivos</option>
+      </select>
+    </div>
+    <div class="field"><label for="ordenPlan">Ordenar</label>
+      <select id="ordenPlan" name="orden" [(ngModel)]="orden" (ngModelChange)="reiniciarPagina()">
+        <option value="nombre">Nombre A-Z</option><option value="precio-asc">Menor precio</option><option value="precio-desc">Mayor precio</option>
+      </select>
+    </div>
+  </div>
+  <div class="filters-footer"><span class="muted">{{ filtrados.length }} planes encontrados</span>
+    <button type="button" class="btn small" (click)="limpiarFiltros()">Limpiar filtros</button>
+  </div>
+</section>
+
+<section class="plans-grid" aria-label="Catálogo de planes">
+  @if (cargando()) { <article class="card empty-plans"><p>Cargando planes desde Supabase...</p></article> }
+  @for (plan of paginaPlanes; track plan.id) {
+    <article class="card pricing-card" [class.featured-plan]="esProfesional(plan)">
+      <div class="pricing-top">
+        <span class="badge" [ngClass]="plan.activo ? 'ACTIVA' : 'INACTIVO'">
+          {{ plan.activo ? 'Disponible' : 'Inactivo' }}
+        </span>
+        @if (esProfesional(plan)) { <span class="plan-tag recommended">RECOMENDADO</span> }
+        @else if (esEmpresarial(plan)) { <span class="plan-tag quotation">BAJO COTIZACIÓN</span> }
+        @else { <span class="plan-tag">CATÁLOGO REAL</span> }
+      </div>
+      <div class="pricing-body">
+        <div class="plan-symbol">▤</div>
+        <h2>{{ plan.nombre }}</h2>
+        <p class="plan-description">{{ plan.descripcion || 'Plan comercial SaaS' }}</p>
+        <div class="pricing-value">
+          @if (esEmpresarial(plan)) { <span class="price-from">Desde </span> }
+          S/ {{ plan.precioMensual | number:'1.2-2' }} <small>/ mes</small>
+        </div>
+        <div class="pricing-divider"></div>
+        <ul class="plan-features">
+          <li><span class="feature-check">✓</span>{{ nombreCupos(plan) }}</li>
+          <li><span class="feature-check">✓</span>
+            @if (plan.limiteProductos !== null) { Hasta {{ plan.limiteProductos }} productos }
+            @else { Productos según contrato }
+          </li>
+          <li><span class="feature-check">✓</span>
+            @if (plan.limiteSucursales !== null) { {{ plan.limiteSucursales }} sucursal(es) }
+            @else { Sucursales según contrato }
+          </li>
+          @for (beneficio of plan.beneficios; track $index) {
+            <li><span class="feature-check">✓</span>{{ beneficio }}</li>
+          }
+        </ul>
+      </div>
+      <div class="pricing-actions">
+        <button type="button" class="btn" (click)="verDetalle(plan.id)">Ver detalles</button>
+        <button type="button" class="btn primary" (click)="editar(plan)" [disabled]="guardando()">Editar</button>
+      </div>
+      <div class="pricing-bottom">
+        @if (plan.activo) {
+          <button type="button" class="text-action danger-text" (click)="prepararDesactivacion(plan.id)" [disabled]="guardando()">Desactivar plan</button>
+        } @else {
+          <button type="button" class="text-action" (click)="activarPlan(plan.id)" [disabled]="guardando()">Activar plan</button>
+        }
+      </div>
+    </article>
+  }
+  @if (!cargando() && !paginaPlanes.length) {
+    <article class="card empty-plans"><h2>No se encontraron planes</h2>
+      <p class="subtitle">Si aún no hay registros, ejecuta el SQL de catálogo inicial o crea un plan.</p>
+      <button type="button" class="btn" (click)="limpiarFiltros()">Limpiar filtros</button>
+    </article>
+  }
+</section>
+
+<footer class="plans-pagination">
+  <span>Mostrando {{ desde }}–{{ hasta }} de {{ filtrados.length }} planes</span>
+  <div class="actions">
+    <button type="button" class="btn small" [disabled]="pagina === 0" (click)="anterior()">Anterior</button>
+    <span>Página {{ pagina + 1 }} de {{ totalPaginas }}</span>
+    <button type="button" class="btn small" [disabled]="pagina + 1 >= totalPaginas" (click)="siguiente()">Siguiente</button>
+  </div>
+</footer>

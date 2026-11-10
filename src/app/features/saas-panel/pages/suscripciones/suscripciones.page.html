@@ -1,0 +1,249 @@
+
+<header class="page-header">
+  <div>
+    <span class="kicker">NEGOCIO SAAS</span>
+    <h1>Suscripciones</h1>
+    <p class="subtitle">Gestiona planes contratados, vencimientos y suscripciones reales.</p>
+  </div>
+
+  <div class="actions">
+    <button class="btn" type="button" (click)="cargar()" [disabled]="cargando">
+      {{ cargando ? 'Actualizando...' : 'Actualizar' }}
+    </button>
+    <button class="btn primary" type="button" (click)="nueva()">
+      + Nueva suscripción
+    </button>
+  </div>
+</header>
+
+@if (mensaje) {
+  <div class="notice success" role="status">{{ mensaje }}</div>
+}
+
+@if (error) {
+  <div class="notice error" role="alert">{{ error }}</div>
+}
+
+@if (cargando) {
+  <div class="notice info">Cargando información desde Spring Boot...</div>
+}
+
+<section class="cards subscription-stats">
+  <article class="card stat">
+    <div class="label">Total suscripciones</div>
+    <div class="value">{{ suscripciones.length }}</div>
+    <div class="detail">Registros de Supabase</div>
+  </article>
+
+  <article class="card stat">
+    <div class="label">Activas</div>
+    <div class="value metric-green">{{ activas }}</div>
+    <div class="detail">Actualmente vigentes</div>
+  </article>
+
+  <article class="card stat">
+    <div class="label">Pendientes</div>
+    <div class="value metric-purple">{{ pendientes }}</div>
+    <div class="detail">Inicio programado</div>
+  </article>
+
+  <article class="card stat">
+    <div class="label">Vencidas</div>
+    <div class="value metric-red">{{ vencidas }}</div>
+    <div class="detail">Fuera de vigencia</div>
+  </article>
+</section>
+
+<section class="cards secondary-stats">
+  <article class="card stat">
+    <div class="label">Canceladas</div>
+    <div class="value secondary-value">{{ canceladas }}</div>
+  </article>
+
+  <article class="card stat">
+    <div class="label">Por vencer en 15 días</div>
+    <div class="value secondary-value metric-orange">{{ porVencer.length }}</div>
+  </article>
+
+  <article class="card stat">
+    <div class="label">Ingreso mensual estimado</div>
+    <div class="value secondary-value">
+      S/ {{ ingresoMensualEstimado | number:'1.2-2' }}
+    </div>
+    <div class="detail">Contratos activos, no pagos confirmados</div>
+  </article>
+</section>
+
+@if (porVencer.length > 0) {
+  <section class="card alerts-panel">
+    <div class="section-heading">
+      <h2>Próximos vencimientos</h2>
+      <span class="alert-count">{{ porVencer.length }} alertas</span>
+    </div>
+
+    @for (s of porVencer; track s.id) {
+      <div class="alert-item">
+        <span class="alert-symbol">!</span>
+        <div class="alert-info">
+          <strong>{{ s.tienda }}</strong>
+          <small>{{ s.plan }} · Vence {{ s.fecha_fin }}</small>
+        </div>
+        <span class="days-pill">{{ diasRestantes(s.fecha_fin) }} días</span>
+      </div>
+    }
+  </section>
+}
+
+@if (formVisible) {
+  <section class="card form-panel">
+    <div class="form-heading">
+      <div>
+        <span class="kicker">REGISTRO DE SUSCRIPCIÓN</span>
+        <h2>Asignar plan a tienda</h2>
+        <p class="subtitle">Los cambios se guardarán en PostgreSQL Supabase.</p>
+      </div>
+      <button class="btn small" type="button" (click)="cerrarFormulario()" [disabled]="guardando">
+        Cerrar
+      </button>
+    </div>
+
+    <form #susForm="ngForm" (ngSubmit)="guardar()">
+      <div class="form-grid">
+        <div class="field">
+          <label for="susTienda">Tienda *</label>
+          <select id="susTienda" name="tiendaId" [(ngModel)]="formulario.tiendaId" required>
+            <option [ngValue]="null">Seleccionar tienda</option>
+            @for (t of tiendas; track t.id) {
+              <option [ngValue]="t.id">{{ t.nombre }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="susPlan">Plan comercial *</label>
+          <select id="susPlan" name="planId" [(ngModel)]="formulario.planId"
+                  (ngModelChange)="cambiarPlan()" required>
+            <option [ngValue]="null">Seleccionar plan</option>
+            @for (p of planes; track p.id) {
+              <option [ngValue]="p.id">{{ p.nombre }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="susInicio">Fecha de inicio *</label>
+          <input id="susInicio" name="fechaInicio" type="date"
+                 [(ngModel)]="formulario.fechaInicio" required>
+        </div>
+
+        <div class="field">
+          <label for="susPrecio">Precio contratado (S/) *</label>
+          <input id="susPrecio" name="precioContratado" type="number"
+                 min="0" step="0.01" placeholder="0.00"
+                 [(ngModel)]="formulario.precioContratado" required>
+          <small class="muted">El precio Empresarial se establece según contrato.</small>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn" type="button" (click)="cerrarFormulario()" [disabled]="guardando">
+          Cancelar
+        </button>
+        <button class="btn primary" type="submit" [disabled]="susForm.invalid || guardando">
+          {{ guardando ? 'Guardando...' : 'Crear suscripción' }}
+        </button>
+      </div>
+    </form>
+  </section>
+}
+
+<section class="card">
+  <div class="toolbar">
+    <div class="field search">
+      <label for="busqueda">Buscar tienda o plan</label>
+      <input id="busqueda" name="busqueda" type="search"
+             [(ngModel)]="busqueda" placeholder="Buscar...">
+    </div>
+
+    <div class="field">
+      <label for="estado">Estado</label>
+      <select id="estado" name="filtroEstado" [(ngModel)]="filtroEstado">
+        <option value="TODOS">Todos</option>
+        <option value="ACTIVA">Activas</option>
+        <option value="PENDIENTE">Pendientes</option>
+        <option value="VENCIDA">Vencidas</option>
+        <option value="CANCELADA">Canceladas</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="plan">Plan</label>
+      <select id="plan" name="filtroPlan" [(ngModel)]="filtroPlan">
+        <option value="TODOS">Todos los planes</option>
+        @for (p of planes; track p.id) {
+          <option [value]="p.id">{{ p.nombre }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="orden">Orden</label>
+      <select id="orden" name="orden" [(ngModel)]="orden">
+        <option value="vencimiento-asc">Próximas a vencer</option>
+        <option value="vencimiento-desc">Vencimientos lejanos</option>
+        <option value="inicio-desc">Inicios recientes</option>
+        <option value="inicio-asc">Inicios antiguos</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="filter-footer">
+    <span class="muted">{{ filtradas.length }} suscripciones encontradas</span>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>TIENDA</th>
+          <th>PLAN</th>
+          <th>ESTADO</th>
+          <th>INICIO</th>
+          <th>VENCIMIENTO</th>
+          <th>PRECIO</th>
+          <th>DÍAS</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        @for (s of filtradas; track s.id) {
+          <tr>
+            <td class="strong">{{ s.tienda }}</td>
+            <td>{{ s.plan }}</td>
+            <td>
+              <span class="badge" [ngClass]="estado(s)">{{ estado(s) }}</span>
+            </td>
+            <td>{{ s.fecha_inicio }}</td>
+            <td>{{ s.fecha_fin }}</td>
+            <td>S/ {{ s.precio_contratado | number:'1.2-2' }}</td>
+            <td>
+              @if (estado(s) === 'ACTIVA') {
+                <span [class.metric-orange]="diasRestantes(s.fecha_fin) <= 15">
+                  {{ diasRestantes(s.fecha_fin) }}
+                </span>
+              } @else {
+                —
+              }
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="7" class="empty">
+              No se encontraron suscripciones.
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</section>

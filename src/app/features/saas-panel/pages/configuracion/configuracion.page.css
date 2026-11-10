@@ -1,0 +1,90 @@
+
+:host { display: block; color: #20304b; }
+
+.page-header, .actions, .form-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.page-header { margin-bottom: 20px; }
+.page-header h1 { margin: 5px 0; font-size: 24px; }
+.kicker { color: #7224ee; font-size: 11px; font-weight: 800; }
+.subtitle { color: #8290a6; font-size: 12px; }
+.actions { justify-content: flex-end; }
+
+.btn {
+  padding: 10px 14px;
+  border: 1px solid #d9e1ed;
+  border-radius: 8px;
+  background: #fff;
+  color: #23324d;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn.primary { background: #7224ee; border-color: #7224ee; color: #fff; }
+.btn:disabled { opacity: .55; cursor: not-allowed; }
+
+.card {
+  min-width: 0;
+  padding: 22px;
+  margin-bottom: 18px;
+  background: #fff;
+  border: 1px solid #dfe5ee;
+  border-radius: 12px;
+}
+
+.section-heading { margin-bottom: 20px; }
+.section-heading h2 { margin: 6px 0; font-size: 18px; }
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.field label { display: block; margin-bottom: 8px; font-size: 12px; font-weight: 700; }
+
+.field input, .field select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 11px 12px;
+  border: 1px solid #d7dfec;
+  border-radius: 8px;
+  background: #fff;
+  color: #20304b;
+  font-size: 12px;
+}
+
+.field input:focus, .field select:focus {
+  outline: 2px solid #d9c5ff;
+  border-color: #7224ee;
+}
+
+.field small { display: block; margin-top: 7px; color: #8290a6; font-size: 11px; }
+
+.notice {
+  padding: 13px;
+  margin: 16px 0;
+  border-radius: 9px;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.notice.info { background: #f0edff; color: #6528c8; }
+.notice.success { background: #e5f8ee; color: #08764c; }
+.notice.error { background: #ffecef; color: #b82b41; }
+
+.form-actions { border-top: 1px solid #edf0f5; padding-top: 18px; }
+.form-actions strong { font-size: 13px; }
+
+@media (max-width: 650px) {
+  .form-grid { grid-template-columns: 1fr; }
+  .page-header, .form-actions { align-items: flex-start; }
+}
+
+  

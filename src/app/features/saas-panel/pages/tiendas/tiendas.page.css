@@ -1,0 +1,130 @@
+
+
+    .kpi-grid {
+      grid-template-columns:
+        repeat(4, minmax(0, 1fr));
+    }
+
+    .kpi-green {
+      color: #059669;
+    }
+
+    .kpi-orange {
+      color: #d97706;
+    }
+
+    .kpi-red {
+      color: #dc3545;
+    }
+
+    .detail-card {
+      margin-bottom: 20px;
+      border-color: #d8c4ff;
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+      gap: 22px;
+      padding: 8px 0;
+    }
+
+    .detail-grid > div {
+      min-width: 0;
+    }
+
+    .detail-grid strong {
+      display: block;
+      font-size: 13px;
+      overflow-wrap: anywhere;
+    }
+
+    .detail-label {
+      display: block;
+      color: #75839b;
+      font-size: 11px;
+      margin-bottom: 7px;
+    }
+
+    .detail-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 22px;
+      padding-top: 18px;
+      border-top: 1px solid #edf0f5;
+    }
+
+    .confirm-card {
+      border-color: #ffbcc9;
+      background: #fffafb;
+      margin-bottom: 20px;
+    }
+
+    .confirm-card h2 {
+      color: #a8293a;
+    }
+
+    .business-name {
+      font-size: 12px;
+      font-weight: 750;
+      color: #17213b;
+      margin-bottom: 5px;
+    }
+
+    .subdomain {
+      display: inline-block;
+      font-size: 11px;
+      border-radius: 6px;
+      background: #f3f4f9;
+      color: #4b5870;
+      padding: 6px 8px;
+    }
+
+    .filter-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .empty-state {
+      padding: 16px;
+    }
+
+    .empty-state strong {
+      color: #17213b;
+      font-size: 13px;
+    }
+
+    .empty-state p {
+      color: #8190a8;
+      font-size: 11px;
+    }
+
+    @media (max-width: 1050px) {
+      .kpi-grid {
+        grid-template-columns:
+          repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 600px) {
+      .kpi-grid,
+      .detail-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .filter-actions {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .detail-actions {
+        flex-direction: column;
+      }
+    }
+
+  

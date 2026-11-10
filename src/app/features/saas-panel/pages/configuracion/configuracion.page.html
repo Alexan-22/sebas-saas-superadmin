@@ -1,0 +1,126 @@
+
+<header class="page-header">
+  <div>
+    <span class="kicker">SISTEMA SAAS</span>
+    <h1>Configuración</h1>
+    <p class="subtitle">Administra los parámetros generales de Sebas Collection SaaS.</p>
+  </div>
+
+  <div class="actions">
+    <button class="btn" type="button" (click)="cargar()" [disabled]="cargando || guardando">
+      Actualizar
+    </button>
+    <button class="btn primary" type="button" (click)="guardar()"
+            [disabled]="cargando || guardando || !modificada">
+      {{ guardando ? 'Guardando...' : 'Guardar cambios' }}
+    </button>
+  </div>
+</header>
+
+@if (mensaje) {
+  <div class="notice success" role="status">{{ mensaje }}</div>
+}
+
+@if (error) {
+  <div class="notice error" role="alert">{{ error }}</div>
+}
+
+@if (cargando) {
+  <div class="notice info">Cargando configuración desde Supabase...</div>
+}
+
+<form #configForm="ngForm" (ngSubmit)="guardar()">
+  <section class="card">
+    <div class="section-heading">
+      <div>
+        <span class="kicker">IDENTIDAD DE LA PLATAFORMA</span>
+        <h2>Información general</h2>
+        <p class="subtitle">Datos administrativos y de contacto.</p>
+      </div>
+    </div>
+
+    <div class="form-grid">
+      <div class="field">
+        <label for="nombre">Nombre de la plataforma *</label>
+        <input id="nombre" name="nombre" type="text" maxlength="100"
+               [(ngModel)]="configuracion.nombre_plataforma" required>
+      </div>
+
+      <div class="field">
+        <label for="correo">Correo de soporte</label>
+        <input id="correo" name="correo" type="email" maxlength="150"
+               [(ngModel)]="configuracion.correo_soporte"
+               placeholder="soporte@ejemplo.com">
+      </div>
+
+      <div class="field">
+        <label for="telefono">Teléfono de soporte</label>
+        <input id="telefono" name="telefono" type="tel" maxlength="25"
+               [(ngModel)]="configuracion.telefono_soporte"
+               placeholder="+51 999 999 999">
+      </div>
+
+      <div class="field">
+        <label for="zona">Zona horaria</label>
+        <select id="zona" name="zona" [(ngModel)]="configuracion.zona_horaria">
+          <option value="America/Lima">Perú — America/Lima</option>
+          <option value="America/Bogota">Colombia — America/Bogota</option>
+          <option value="America/Mexico_City">México — America/Mexico_City</option>
+          <option value="UTC">UTC</option>
+        </select>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="section-heading">
+      <div>
+        <span class="kicker">SUSCRIPCIONES</span>
+        <h2>Parámetros comerciales</h2>
+        <p class="subtitle">Valores persistentes para futuras automatizaciones.</p>
+      </div>
+    </div>
+
+    <div class="form-grid">
+      <div class="field">
+        <label for="prueba">Días de prueba gratuita</label>
+        <input id="prueba" name="prueba" type="number" min="0" max="365" step="1"
+               [(ngModel)]="configuracion.dias_prueba">
+        <small>Duración propuesta para nuevas tiendas.</small>
+      </div>
+
+      <div class="field">
+        <label for="alerta">Días de alerta antes del vencimiento</label>
+        <input id="alerta" name="alerta" type="number" min="0" max="365" step="1"
+               [(ngModel)]="configuracion.dias_alerta_vencimiento">
+        <small>Anticipación configurada para futuras notificaciones.</small>
+      </div>
+    </div>
+
+    <div class="notice info">
+      Estos parámetros se guardan en Supabase. Las pruebas gratuitas y las
+      notificaciones automáticas todavía deben conectarse a los servicios
+      correspondientes de Spring Boot.
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="form-actions">
+      <div>
+        <strong>Guardar configuración</strong>
+        <p class="subtitle">Los cambios persistirán al cerrar y volver a abrir el panel.</p>
+      </div>
+
+      <div class="actions">
+        <button class="btn" type="button" (click)="restaurar()"
+                [disabled]="!modificada || guardando">
+          Descartar cambios
+        </button>
+        <button class="btn primary" type="submit"
+                [disabled]="configForm.invalid || !modificada || guardando || cargando">
+          {{ guardando ? 'Guardando...' : 'Guardar configuración' }}
+        </button>
+      </div>
+    </div>
+  </section>
+</form>

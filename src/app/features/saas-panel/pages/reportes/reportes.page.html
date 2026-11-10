@@ -1,0 +1,269 @@
+
+<header class="page-header">
+  <div>
+    <span class="kicker">ANÁLISIS DE LA PLATAFORMA</span>
+    <h1>Reportes SaaS</h1>
+    <p class="subtitle">Indicadores comerciales y suscripciones de todas las tiendas.</p>
+  </div>
+
+  <div class="actions">
+    <button class="btn" type="button" (click)="cargar()" [disabled]="cargando">
+      {{ cargando ? 'Actualizando...' : 'Actualizar' }}
+    </button>
+    <button class="btn primary" type="button" (click)="exportarCsv()"
+            [disabled]="cargando || !filtradas.length">
+      Exportar CSV
+    </button>
+  </div>
+</header>
+
+@if (error) {
+  <div class="notice error" role="alert">{{ error }}</div>
+}
+
+@if (cargando) {
+  <div class="notice info">Consultando reportes desde Spring Boot...</div>
+}
+
+@if (actualizado) {
+  <p class="actualizacion">Última actualización: {{ actualizado }}</p>
+}
+
+<section class="report-grid">
+  <article class="report-card">
+    <span class="metric-label">Tiendas registradas</span>
+    <strong class="metric-value">{{ resumen?.total_tiendas ?? 0 }}</strong>
+    <span class="metric-detail">Tiendas en la plataforma</span>
+  </article>
+
+  <article class="report-card">
+    <span class="metric-label">Suscripciones activas</span>
+    <strong class="metric-value green">{{ resumen?.suscripciones_activas ?? 0 }}</strong>
+    <span class="metric-detail">Contratos vigentes</span>
+  </article>
+
+  <article class="report-card">
+    <span class="metric-label">Planes comerciales activos</span>
+    <strong class="metric-value purple">{{ resumen?.planes_activos ?? 0 }}</strong>
+    <span class="metric-detail">Disponibles en el catálogo</span>
+  </article>
+
+  <article class="report-card">
+    <span class="metric-label">Ingreso mensual contratado</span>
+    <strong class="metric-value">S/ {{ mrr | number:'1.2-2' }}</strong>
+    <span class="metric-detail">MRR estimado, no cobros realizados</span>
+  </article>
+</section>
+
+<section class="report-grid secondary-grid">
+  <article class="report-card">
+    <span class="metric-label">Ingreso anual proyectado</span>
+    <strong class="metric-value small">S/ {{ ingresoAnualEstimado | number:'1.2-2' }}</strong>
+    <span class="metric-detail">MRR actual multiplicado por 12</span>
+  </article>
+
+  <article class="report-card">
+    <span class="metric-label">Pendientes de inicio</span>
+    <strong class="metric-value small purple">
+      {{ resumen?.suscripciones_pendientes ?? 0 }}
+    </strong>
+  </article>
+
+  <article class="report-card">
+    <span class="metric-label">Vencidas</span>
+    <strong class="metric-value small red">
+      {{ resumen?.suscripciones_vencidas ?? 0 }}
+    </strong>
+  </article>
+
+  <article class="report-card">
+    <span class="metric-label">Por vencer en 15 días</span>
+    <strong class="metric-value small orange">{{ vencimientos.length }}</strong>
+  </article>
+</section>
+
+<div class="report-sections">
+  <section class="report-card">
+    <div class="section-heading">
+      <div>
+        <h2>Ingresos contratados por plan</h2>
+        <p>Distribución mensual estimada de contratos vigentes.</p>
+      </div>
+    </div>
+
+    @for (plan of planes; track plan.plan_id) {
+      <div class="plan-row">
+        <div class="plan-info">
+          <strong>{{ plan.plan }}</strong>
+          <span>S/ {{ plan.mrr_contratado | number:'1.2-2' }}</span>
+        </div>
+
+        <div class="bar-track">
+          <div class="bar-fill" [style.width.%]="anchoPlan(plan)"></div>
+        </div>
+
+        <small>{{ plan.suscripciones_activas }} suscripciones activas</small>
+      </div>
+    } @empty {
+      <p class="empty-message">No hay información de planes disponible.</p>
+    }
+  </section>
+
+  <section class="report-card">
+    <div class="section-heading">
+      <div>
+        <h2>Estado de la plataforma</h2>
+        <p>Resumen de tiendas y contratos.</p>
+      </div>
+    </div>
+
+    <div class="progress-label">
+      <span>Tiendas con suscripción vigente</span>
+      <strong>{{ porcentajeTiendasSuscritas }}%</strong>
+    </div>
+
+    <div class="bar-track">
+      <div class="bar-fill green-fill" [style.width.%]="porcentajeTiendasSuscritas"></div>
+    </div>
+
+    <div class="summary-list">
+      <div>
+        <span>Total de suscripciones</span>
+        <strong>{{ resumen?.total_suscripciones ?? 0 }}</strong>
+      </div>
+      <div>
+        <span>Suscripciones canceladas</span>
+        <strong>{{ resumen?.suscripciones_canceladas ?? 0 }}</strong>
+      </div>
+      <div>
+        <span>Suscripciones vencidas</span>
+        <strong>{{ resumen?.suscripciones_vencidas ?? 0 }}</strong>
+      </div>
+      <div>
+        <span>Tiendas registradas</span>
+        <strong>{{ resumen?.total_tiendas ?? 0 }}</strong>
+      </div>
+    </div>
+  </section>
+</div>
+
+@if (vencimientos.length > 0) {
+  <section class="report-card alerts-section">
+    <div class="section-heading">
+      <h2>Próximos vencimientos</h2>
+      <span class="alert-pill">{{ vencimientos.length }} alertas</span>
+    </div>
+
+    @for (s of vencimientos; track s.id) {
+      <div class="alert-row">
+        <div>
+          <strong>{{ s.tienda }}</strong>
+          <small>{{ s.plan }} · {{ s.fecha_fin }}</small>
+        </div>
+        <span class="days-pill">{{ diasRestantes(s.fecha_fin) }} días</span>
+      </div>
+    }
+  </section>
+}
+
+<section class="report-card">
+  <div class="section-heading">
+    <div>
+      <h2>Detalle de suscripciones</h2>
+      <p>Contratos registrados en la base de datos.</p>
+    </div>
+    <span class="count-pill">{{ filtradas.length }} registros</span>
+  </div>
+
+  <div class="filters">
+    <div class="field search">
+      <label for="reporteBuscar">Buscar tienda o plan</label>
+      <input id="reporteBuscar" type="search" [(ngModel)]="busqueda"
+             placeholder="Buscar...">
+    </div>
+
+    <div class="field">
+      <label for="reporteEstado">Estado</label>
+      <select id="reporteEstado" [(ngModel)]="filtroEstado">
+        <option value="TODOS">Todos</option>
+        <option value="ACTIVA">Activa</option>
+        <option value="PENDIENTE">Pendiente</option>
+        <option value="VENCIDA">Vencida</option>
+        <option value="CANCELADA">Cancelada</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="reportePlan">Plan</label>
+      <select id="reportePlan" [(ngModel)]="filtroPlan">
+        <option value="TODOS">Todos los planes</option>
+        @for (p of planes; track p.plan_id) {
+          <option [value]="p.plan">{{ p.plan }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="reporteOrden">Orden</label>
+      <select id="reporteOrden" [(ngModel)]="orden">
+        <option value="vencimiento-asc">Próximos a vencer</option>
+        <option value="vencimiento-desc">Vencimiento lejano</option>
+        <option value="inicio-desc">Inicio reciente</option>
+        <option value="inicio-asc">Inicio antiguo</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="table-summary">
+    <span>MRR de contratos filtrados:</span>
+    <strong>S/ {{ mrrFiltrado | number:'1.2-2' }}</strong>
+    <button class="btn small" type="button" (click)="limpiarFiltros()">
+      Limpiar filtros
+    </button>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>TIENDA</th>
+          <th>PLAN</th>
+          <th>ESTADO</th>
+          <th>INICIO</th>
+          <th>VENCIMIENTO</th>
+          <th>PRECIO CONTRATADO</th>
+          <th>DÍAS</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        @for (s of filtradas; track s.id) {
+          <tr>
+            <td class="strong">{{ s.tienda }}</td>
+            <td>{{ s.plan }}</td>
+            <td>
+              <span class="status" [ngClass]="estado(s)">{{ estado(s) }}</span>
+            </td>
+            <td>{{ s.fecha_inicio }}</td>
+            <td>{{ s.fecha_fin }}</td>
+            <td>S/ {{ s.precio_contratado | number:'1.2-2' }}</td>
+            <td>
+              @if (estado(s) === 'ACTIVA') {
+                {{ diasRestantes(s.fecha_fin) }}
+              } @else {
+                —
+              }
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="7" class="empty-message">
+              No se encontraron suscripciones.
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</section>
+

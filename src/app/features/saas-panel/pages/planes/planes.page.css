@@ -1,0 +1,85 @@
+/* SEBAS COLLECTION SAAS V2 - PLANES REALES
+   Complementa ../saas-ui.css, sin alterar el tema del panel. */
+:host { display: block; }
+
+.page-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.page-header h1 { margin: 6px 0; }
+.actions { display: flex; gap: 9px; align-items: center; flex-wrap: wrap; }
+
+.plans-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 15px; margin: 18px 0; }
+.metric-green { color: #059669; }
+.metric-red { color: #dc3545; }
+.metric-purple { color: #7224ee; }
+
+.form-heading, .toolbar, .filters-footer, .plans-pagination, .form-actions, .detail-actions {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+}
+.form-heading h2 { margin: 7px 0; }
+.form-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 17px; }
+.form-grid .field { min-width: 0; }
+.field.wide { grid-column: 1 / -1; }
+.field label { display: block; margin-bottom: 7px; font-size: 12px; font-weight: 600; }
+.field input, .field select, .field textarea { box-sizing: border-box; max-width: 100%; width: 100%; padding: 10px 12px; border: 1px solid #dce2eb; border-radius: 9px; background: #fff; color: #17213a; font: inherit; }
+.field textarea { resize: vertical; line-height: 1.5; }
+.field small { display: block; margin-top: 5px; color: #74829c; }
+.field.search { flex: 1 1 280px; }
+.form-actions { justify-content: flex-end; margin-top: 20px; }
+
+.plan-preview { margin-top: 20px; padding: 22px; border-radius: 12px; border: 1px solid #e6d9ff; background: #faf7ff; }
+.plan-preview h3 { margin: 8px 0; font-size: 20px; }
+.preview-description, .plan-description { color: #78869d; font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }
+.preview-price, .pricing-value { font-size: 30px; font-weight: 800; letter-spacing: -1px; color: #16213c; margin: 16px 0; }
+.preview-price small, .pricing-value small { font-size: 12px; font-weight: 400; color: #8592a7; letter-spacing: 0; }
+.preview-features { display: flex; flex-wrap: wrap; gap: 8px; }
+.preview-features span { padding: 7px 10px; background: #ede4ff; color: #6331ae; border-radius: 20px; font-size: 11px; }
+
+.plan-detail { margin-bottom: 20px; border-color: #d9c7ff; }
+.detail-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; padding: 16px 0 20px; }
+.detail-grid > div { min-width: 0; }
+.detail-label { display: block; color: #7d8ba1; font-size: 11px; margin-bottom: 7px; }
+.detail-grid strong { display: block; font-size: 14px; color: #1e2942; overflow-wrap: anywhere; }
+.related-section { padding-top: 20px; border-top: 1px solid #edf0f5; }
+.related-section h3 { margin: 0 0 13px; }
+.detail-benefits { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 14px !important; }
+.detail-actions { justify-content: flex-start; border-top: 1px solid #edf0f5; margin-top: 20px; padding-top: 20px; }
+.confirm-panel { margin-bottom: 20px; border-color: #ffc3cf; background: #fffafb; }
+.confirm-panel h2 { color: #a82d41; }
+.confirm-panel > p { font-size: 12px; line-height: 1.7; }
+.filters-panel { margin: 18px 0; }
+.filters-footer { margin-top: 12px; }
+
+.plans-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(245px, 1fr)); gap: 16px; }
+.pricing-card { display: flex; flex-direction: column; min-width: 0; transition: transform .15s, box-shadow .15s; }
+.pricing-card:hover { transform: translateY(-3px); box-shadow: 0 9px 25px rgba(31, 35, 70, .08); }
+.pricing-card.featured-plan { border-color: #ab82ff; box-shadow: 0 0 0 1px #d0baff; }
+.pricing-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.plan-tag { font-size: 10px; font-weight: 700; letter-spacing: .045em; color: #8492a9; }
+.plan-tag.recommended { color: #7224ee; }
+.plan-tag.quotation { color: #925f2b; }
+.pricing-body { flex: 1; }
+.plan-symbol { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 12px; background: #efe7ff; color: #6f24e2; font-size: 23px; margin-top: 24px; }
+.pricing-body h2 { font-size: 21px; margin: 15px 0 7px; }
+.plan-description { min-height: 38px; }
+.price-from { font-size: 15px; font-weight: 600; letter-spacing: normal; }
+.pricing-divider { height: 1px; background: #edf0f5; margin: 17px 0; }
+.plan-features { padding: 0; list-style: none; display: flex; flex-direction: column; gap: 13px; margin: 0 0 23px; }
+.plan-features li { display: flex; align-items: flex-start; gap: 9px; font-size: 12px; color: #52617a; }
+.feature-check { font-weight: 800; color: #0ba36a; flex-shrink: 0; }
+.pricing-actions { display: flex; gap: 9px; }
+.pricing-actions .btn { flex: 1; }
+.pricing-bottom { text-align: center; margin-top: 17px; padding-top: 14px; border-top: 1px solid #edf0f5; }
+.text-action { border: 0; padding: 6px; color: #6831c1; font-size: 11px; font-weight: 700; background: transparent; cursor: pointer; }
+.danger-text { color: #b72c49; }
+.empty-plans { grid-column: 1 / -1; text-align: center; padding: 40px 20px; }
+.empty-plans .btn { margin-top: 15px; }
+.plans-pagination { margin-top: 20px; color: #74839a; font-size: 11px; }
+
+@media (max-width: 1000px) {
+  .plans-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .form-grid, .detail-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 600px) {
+  .plans-stats, .form-grid, .detail-grid, .detail-benefits { grid-template-columns: 1fr !important; }
+  .filters-footer, .plans-pagination { align-items: flex-start; }
+  .pricing-actions { flex-wrap: wrap; }
+}

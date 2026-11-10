@@ -1,0 +1,458 @@
+
+:host {
+  display: block;
+  font-family: Inter, system-ui, -apple-system,
+    'Segoe UI', sans-serif;
+  color: #141d35;
+}
+
+:host * {
+  box-sizing: border-box;
+}
+
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.kicker {
+  display: block;
+  color: #7437ee;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 9px;
+}
+
+h1 {
+  font-size: 26px;
+  letter-spacing: -0.7px;
+  margin: 0 0 7px;
+  line-height: 1.3;
+}
+
+h2 {
+  font-size: 16px;
+  margin: 0 0 12px;
+}
+
+.subtitle {
+  font-size: 12px;
+  color: #748198;
+  margin: 0;
+  line-height: 1.55;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid #dce2ee;
+  border-radius: 9px;
+  padding: 10px 14px;
+  background: white;
+  color: #344159;
+  font-weight: 700;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: inherit;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.btn:hover {
+  background: #f8f6ff;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn.primary {
+  background: #7224ee;
+  border-color: #7224ee;
+  color: white;
+}
+
+.btn.primary:hover {
+  background: #6018d3;
+}
+
+.btn.danger {
+  color: #ae2344;
+  border-color: #ffd1dc;
+}
+
+.btn.small {
+  padding: 7px 9px;
+  font-size: 11px;
+}
+
+.card {
+  background: white;
+  border-radius: 13px;
+  border: 1px solid #e7eaf0;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+  padding: 20px;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.stat {
+  padding: 20px;
+}
+
+.stat .label {
+  font-size: 11px;
+  color: #64748b;
+}
+
+.stat .value {
+  font-size: 29px;
+  font-weight: 850;
+  letter-spacing: -1px;
+  margin: 10px 0 5px;
+}
+
+.stat .detail {
+  font-size: 10px;
+  color: #8592a8;
+}
+
+.gradient {
+  background: linear-gradient(
+    112deg,
+    #7417ee 0%,
+    #4521b5 54%,
+    #101b36 100%
+  );
+  color: white;
+  border-radius: 15px;
+  padding: 32px;
+  margin-bottom: 22px;
+}
+
+.gradient h2 {
+  font-size: 24px;
+  margin: 0 0 8px;
+}
+
+.gradient p {
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+.gradient .btn {
+  margin-top: 12px;
+  border: 0;
+}
+
+.toolbar {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 15px;
+  flex-wrap: wrap;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.field label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #52617c;
+}
+
+.field input,
+.field select,
+.field textarea {
+  width: 100%;
+  background: white;
+  color: #17223b;
+  padding: 10px 11px;
+  border: 1px solid #dae1ed;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 12px;
+  min-height: 38px;
+  outline: none;
+}
+
+.field textarea {
+  resize: vertical;
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  border-color: #8e56ee;
+  box-shadow: 0 0 0 3px #8e56ee1c;
+}
+
+.search {
+  width: min(100%, 340px);
+}
+
+.table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 640px;
+  text-align: left;
+}
+
+th {
+  background: #f7f9fc;
+  color: #657895;
+  letter-spacing: 0.025em;
+  font-size: 10px;
+  font-weight: 750;
+  padding: 13px 14px;
+}
+
+td {
+  border-bottom: 1px solid #edf0f5;
+  padding: 14px;
+  font-size: 12px;
+  color: #4c5a70;
+}
+
+tr:last-child td {
+  border-bottom: 0;
+}
+
+tbody tr:hover {
+  background: #fcfbff;
+}
+
+.strong {
+  color: #18223b;
+  font-weight: 750;
+}
+
+.muted {
+  color: #8190a8;
+  font-size: 11px;
+}
+
+.badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 800;
+  border-radius: 30px;
+  padding: 5px 9px;
+  white-space: nowrap;
+  background: #eef2ff;
+  color: #5454b0;
+}
+
+.badge.ACTIVA,
+.badge.ACTIVO,
+.badge.VERIFICADO_DEMO {
+  color: #06774c;
+  background: #dbf9e9;
+}
+
+.badge.PENDIENTE,
+.badge.PRUEBA {
+  color: #a56706;
+  background: #fff1ce;
+}
+
+.badge.SUSPENDIDA,
+.badge.INACTIVO,
+.badge.ERROR,
+.badge.CANCELADA,
+.badge.VENCIDA {
+  color: #a52939;
+  background: #ffe6eb;
+}
+
+.badge.NUEVO {
+  color: #5631b8;
+  background: #f0e9ff;
+}
+
+.table-footer {
+  margin-top: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  color: #748198;
+  font-size: 11px;
+}
+
+.empty {
+  text-align: center;
+  padding: 35px 12px;
+  color: #7f8ba1;
+  font-size: 12px;
+}
+
+.note {
+  color: #71819a;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.notice {
+  padding: 13px 15px;
+  border-radius: 8px;
+  margin-bottom: 14px;
+  font-size: 12px;
+}
+
+.notice.success {
+  color: #08744d;
+  background: #e2f9ed;
+}
+
+.notice.error {
+  color: #ac2940;
+  background: #ffedf0;
+}
+
+.notice.info {
+  color: #5d43a3;
+  background: #f3edff;
+}
+
+.form-panel {
+  margin-bottom: 20px;
+  border-color: #dacafa;
+  box-shadow: 0 6px 30px #6f31e40d;
+}
+
+.form-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.form-heading h2 {
+  margin: 0;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.form-grid .wide {
+  grid-column: 1 / -1;
+}
+
+.form-actions {
+  margin-top: 18px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 9px;
+}
+
+.section-space {
+  margin-top: 22px;
+}
+
+.pill-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.pill {
+  background: #f3efff;
+  color: #6430c0;
+  padding: 7px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+}
+
+.simple-list {
+  padding-left: 18px;
+  color: #52617b;
+  font-size: 12px;
+  line-height: 1.9;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.compact-table td,
+.compact-table th {
+  padding: 11px;
+}
+
+@media (max-width: 1024px) {
+  .cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .cards,
+  .grid-2,
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .page-header {
+    gap: 12px;
+  }
+
+  h1 {
+    font-size: 22px;
+  }
+
+  .gradient {
+    padding: 23px;
+  }
+
+  .gradient h2 {
+    font-size: 21px;
+  }
+
+  .card {
+    padding: 15px;
+  }
+
+  .form-grid .wide {
+    grid-column: auto;
+  }
+}

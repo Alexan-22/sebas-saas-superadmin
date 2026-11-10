@@ -1,0 +1,256 @@
+
+:host {
+  display: block;
+  min-height: 100vh;
+  color: #10182f;
+  font-family: Inter, system-ui, -apple-system,
+    'Segoe UI', sans-serif;
+}
+
+:host * {
+  box-sizing: border-box;
+}
+
+.saas-layout {
+  display: flex;
+  min-height: 100vh;
+  background: #f6f8fc;
+}
+
+.saas-sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  width: 224px;
+  background: #111827;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  z-index: 20;
+}
+
+.brand {
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 22px 18px;
+  text-decoration: none;
+  border-bottom: 1px solid #293346;
+}
+
+.brand-mark {
+  width: 37px;
+  height: 37px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(
+    135deg,
+    #8e22ff,
+    #582be9
+  );
+  border-radius: 12px;
+  font-weight: 800;
+}
+
+.brand strong {
+  display: block;
+  font-size: 12px;
+}
+
+.brand small {
+  display: block;
+  color: #9eabc4;
+  font-size: 9px;
+  margin-top: 3px;
+}
+
+.sidebar-nav {
+  overflow-y: auto;
+  padding: 8px 10px;
+  flex: 1;
+}
+
+.nav-section {
+  color: #697b99;
+  font-weight: 750;
+  font-size: 10px;
+  letter-spacing: 1px;
+  padding: 18px 12px 6px;
+  margin: 0;
+}
+
+.sidebar-nav a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #c8d0de;
+  border-radius: 9px;
+  text-decoration: none;
+  padding: 12px 13px;
+  margin: 2px 0;
+  font-weight: 600;
+  font-size: 12px;
+  transition: 0.15s;
+}
+
+.sidebar-nav a span {
+  display: inline-block;
+  width: 15px;
+  font-size: 15px;
+  text-align: center;
+}
+
+.sidebar-nav a:hover {
+  background: #202b40;
+  color: white;
+}
+
+.sidebar-nav a.selected {
+  color: white;
+  background: #38206f;
+  outline: 1px solid #50328d;
+}
+
+.sidebar-bottom {
+  margin: 12px;
+  border: 1px solid #2a3346;
+  border-radius: 12px;
+  padding: 14px;
+  background: #1b2538;
+}
+
+.sidebar-bottom strong {
+  font-size: 11px;
+}
+
+.sidebar-bottom p {
+  font-size: 10px;
+  color: #a0aec5;
+  margin: 5px 0 0;
+  line-height: 1.5;
+}
+
+.saas-workspace {
+  margin-left: 224px;
+  width: calc(100% - 224px);
+  min-height: 100vh;
+}
+
+.saas-topbar {
+  height: 64px;
+  background: white;
+  border-bottom: 1px solid #e7eaf1;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 26px;
+}
+
+.saas-topbar strong {
+  display: block;
+  font-size: 12px;
+}
+
+.saas-topbar small {
+  display: block;
+  color: #78859c;
+  font-size: 10px;
+  margin-top: 4px;
+}
+
+.top-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.demo-indicator {
+  background: #f4efff;
+  color: #6d2dd5;
+  padding: 8px 10px;
+  font-size: 10px;
+  font-weight: 800;
+  border-radius: 100px;
+}
+
+.avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #055e4c;
+  color: white;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.saas-main {
+  width: min(1130px, 100%);
+  margin: auto;
+  padding: 36px 30px 70px;
+}
+
+.menu-button,
+.overlay {
+  display: none;
+}
+
+@media (max-width: 950px) {
+
+  .saas-sidebar {
+    transform: translateX(-105%);
+    transition: transform 0.2s;
+  }
+
+  .saas-sidebar.open {
+    transform: translateX(0);
+  }
+
+  .saas-workspace {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .menu-button {
+    display: block;
+    border: 0;
+    font-size: 21px;
+    background: transparent;
+    color: #17253e;
+    cursor: pointer;
+  }
+
+  .overlay {
+    display: block;
+    position: fixed;
+    z-index: 15;
+    inset: 0;
+    border: 0;
+    background: rgba(9, 17, 35, 0.5);
+  }
+
+  .saas-main {
+    padding: 24px 16px 50px;
+  }
+}
+
+@media (max-width: 480px) {
+
+  .saas-topbar {
+    padding: 0 14px;
+  }
+
+  .saas-topbar strong {
+    font-size: 11px;
+  }
+
+  .demo-indicator {
+    font-size: 8px;
+  }
+
+  .avatar {
+    display: none;
+  }
+}

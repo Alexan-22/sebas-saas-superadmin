@@ -1,0 +1,134 @@
+
+<header class="page-header">
+  <div>
+    <span class="kicker">SISTEMA SAAS</span>
+    <h1>Registro de actividad</h1>
+    <p class="subtitle">Historial real de operaciones administrativas.</p>
+  </div>
+
+  <div class="actions">
+    <button class="btn" type="button" (click)="cargar()" [disabled]="cargando">
+      Actualizar
+    </button>
+    <button class="btn primary" type="button" (click)="exportar()" [disabled]="!filtradas.length">
+      Exportar CSV
+    </button>
+  </div>
+</header>
+
+@if (error) {
+  <div class="notice error" role="alert">{{ error }}</div>
+}
+
+@if (cargando) {
+  <div class="notice info">Consultando actividad del servidor...</div>
+}
+
+<section class="cards stats-grid">
+  <article class="card stat">
+    <div class="label">Total de eventos</div>
+    <div class="value">{{ resumen.total }}</div>
+    <div class="detail">Registros persistentes</div>
+  </article>
+
+  <article class="card stat">
+    <div class="label">Hoy</div>
+    <div class="value purple">{{ resumen.hoy }}</div>
+    <div class="detail">Eventos del día</div>
+  </article>
+
+  <article class="card stat">
+    <div class="label">Creaciones</div>
+    <div class="value green">{{ resumen.creaciones }}</div>
+  </article>
+
+  <article class="card stat">
+    <div class="label">Actualizaciones</div>
+    <div class="value orange">{{ resumen.actualizaciones }}</div>
+  </article>
+</section>
+
+<section class="card">
+  <div class="toolbar">
+    <div class="field search">
+      <label for="buscarActividad">Buscar actividad</label>
+      <input id="buscarActividad" type="search" [(ngModel)]="busqueda"
+             (ngModelChange)="pagina = 0" placeholder="Usuario, acción o descripción">
+    </div>
+
+    <div class="field">
+      <label for="accion">Acción</label>
+      <select id="accion" [(ngModel)]="filtroAccion" (ngModelChange)="pagina = 0">
+        <option value="TODAS">Todas</option>
+        <option value="CREAR">Creaciones</option>
+        <option value="ACTUALIZAR">Actualizaciones</option>
+        <option value="ELIMINAR">Eliminaciones</option>
+        <option value="CANCELAR">Cancelaciones</option>
+        <option value="RENOVAR">Renovaciones</option>
+        <option value="VERIFICAR">Verificaciones</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="entidad">Módulo</label>
+      <select id="entidad" [(ngModel)]="filtroEntidad" (ngModelChange)="pagina = 0">
+        <option value="TODAS">Todos</option>
+        @for (entidad of entidades; track entidad) {
+          <option [value]="entidad">{{ entidad }}</option>
+        }
+      </select>
+    </div>
+  </div>
+
+  <div class="filter-footer">
+    <span class="muted">{{ filtradas.length }} eventos encontrados</span>
+    <button class="btn small" type="button" (click)="limpiar()">Limpiar filtros</button>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>FECHA</th>
+          <th>USUARIO</th>
+          <th>ACCIÓN</th>
+          <th>MÓDULO</th>
+          <th>DESCRIPCIÓN</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        @for (a of paginaActividades; track a.id) {
+          <tr>
+            <td>{{ a.creado_en }}</td>
+            <td class="strong">{{ a.usuario }}</td>
+            <td>
+              <span class="badge" [ngClass]="a.accion">{{ a.accion }}</span>
+            </td>
+            <td>{{ a.entidad }}</td>
+            <td>{{ a.descripcion }}</td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="5" class="empty">
+              Todavía no hay actividad registrada con estos filtros.
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <footer class="table-footer">
+    <span>Mostrando {{ desde }}–{{ hasta }} de {{ filtradas.length }}</span>
+    <div class="actions">
+      <button class="btn small" type="button" [disabled]="pagina === 0"
+              (click)="pagina = pagina - 1">Anterior</button>
+      <span>Página {{ pagina + 1 }} de {{ totalPaginas }}</span>
+      <button class="btn small" type="button" [disabled]="pagina + 1 >= totalPaginas"
+              (click)="pagina = pagina + 1">Siguiente</button>
+    </div>
+  </footer>
+
+  <p class="muted">Se muestran como máximo los últimos 500 eventos. La paginación es local.</p>
+</section>

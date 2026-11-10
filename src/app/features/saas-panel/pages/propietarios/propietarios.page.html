@@ -1,0 +1,463 @@
+<!-- ===================================================== -->
+<!-- SEBAS COLLECTION SAAS V2 - PROPIETARIOS REALES         -->
+<!-- Angular -> Spring Boot -> Supabase                    -->
+<!-- ===================================================== -->
+
+<main class="propietarios-saas">
+
+  <!-- ENCABEZADO -->
+  <header class="page-header">
+    <div>
+      <span class="kicker">ADMINISTRACIÓN SAAS</span>
+      <h1>Gestión de propietarios</h1>
+      <p class="subtitle">
+        Administra las cuentas responsables de las tiendas registradas en Supabase.
+      </p>
+    </div>
+
+    <button
+      type="button"
+      class="btn"
+      (click)="cargarPropietarios()"
+      [disabled]="cargando() || guardando()"
+    >
+      {{ cargando() ? 'Actualizando...' : 'Actualizar' }}
+    </button>
+  </header>
+
+  <!-- MENSAJES -->
+  @if (mensaje()) {
+    <div class="notice success" role="status">
+      {{ mensaje() }}
+    </div>
+  }
+
+  @if (error()) {
+    <div class="notice error" role="alert">
+      <strong>No se pudo completar la operación.</strong>
+      <p>{{ error() }}</p>
+    </div>
+  }
+
+  <!-- ESTADÍSTICAS: solo mostramos números si la API respondió -->
+  <section class="stats" aria-label="Resumen de propietarios">
+    <article class="stat">
+      <span>Tiendas registradas</span>
+      <strong>{{ cargado() ? propietarios().length : '—' }}</strong>
+    </article>
+    <article class="stat">
+      <span>Con propietario</span>
+      <strong>{{ cargado() ? asignadas() : '—' }}</strong>
+    </article>
+    <article class="stat">
+      <span>Sin propietario</span>
+      <strong>{{ cargado() ? sinAsignar() : '—' }}</strong>
+    </article>
+    <article class="stat">
+      <span>Propietarios activos</span>
+      <strong>{{ cargado() ? activos() : '—' }}</strong>
+    </article>
+  </section>
+
+  <!-- TABLA DE PROPIETARIOS -->
+  <section class="card" aria-label="Listado de tiendas y propietarios">
+    <div class="toolbar">
+      <div class="field search">
+        <label for="buscarPropietario">Buscar tienda o propietario</label>
+        <input
+          id="buscarPropietario"
+          type="search"
+          name="buscarPropietario"
+          placeholder="Nombre, correo o subdominio..."
+          [ngModel]="busqueda()"
+          (ngModelChange)="cambiarBusqueda($event)"
+          [disabled]="cargando() || !cargado()"
+        />
+      </div>
+
+      @if (cargado()) {
+        <span class="muted">{{ filtrados().length }} resultados</span>
+      }
+    </div>
+
+    @if (cargando()) {
+      <p class="empty" role="status">Consultando propietarios en Spring Boot...</p>
+    } @else if (!cargado()) {
+      <p class="empty">
+        No se pudieron cargar los datos reales. Revisa el mensaje anterior y pulsa Actualizar.
+      </p>
+    } @else {
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>TIENDA</th>
+              <th>PROPIETARIO</th>
+              <th>CORREO</th>
+              <th>ACCESO</th>
+              <th>ESTADO TIENDA</th>
+              <th>ACCIONES</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            @for (p of paginaActual(); track p.tiendaId) {
+              <tr>
+                <td>
+                  <strong>{{ p.tiendaNombre }}</strong>
+                  <small>{{ p.subdominio }}</small>
+                </td>
+
+                <td>
+                  @if (p.usuarioId !== null) {
+                    <strong>{{ nombreCompleto(p) }}</strong>
+                    <small>Usuario #{{ p.usuarioId }}</small>
+                  } @else {
+                    <span class="muted">Sin propietario</span>
+                  }
+                </td>
+
+                <td>{{ p.correo || '—' }}</td>
+
+                <td>
+                  @if (p.usuarioId === null) {
+                    <span class="pill neutral">SIN ASIGNAR</span>
+                  } @else if (p.activo) {
+                    <span class="pill active">ACTIVO</span>
+                  } @else {
+                    <span class="pill inactive">INACTIVO</span>
+                  }
+                </td>
+
+                <td>
+                  <span
+                    class="pill"
+                    [class.active]="p.estadoTienda === 'ACTIVA'"
+                    [class.inactive]="p.estadoTienda === 'SUSPENDIDA'"
+                    [class.neutral]="p.estadoTienda === 'PENDIENTE'"
+                  >
+                    {{ p.estadoTienda }}
+                  </span>
+                </td>
+
+                <td>
+                  <div class="row-actions">
+                    @if (p.usuarioId === null) {
+                      <button
+                        type="button"
+                        class="btn primary small"
+                        (click)="abrirCrear(p)"
+                        [disabled]="guardando()"
+                      >
+                        Crear propietario
+                      </button>
+                    } @else {
+                      <button
+                        type="button"
+                        class="btn small"
+                        (click)="abrirEditar(p)"
+                        [disabled]="guardando()"
+                      >
+                        Editar
+                      </button>
+
+                      @if (p.activo) {
+                        <button
+                          type="button"
+                          class="btn danger small"
+                          (click)="solicitarEstado(p, false)"
+                          [disabled]="guardando()"
+                        >
+                          Desactivar
+                        </button>
+                      } @else {
+                        <button
+                          type="button"
+                          class="btn success-btn small"
+                          (click)="solicitarEstado(p, true)"
+                          [disabled]="guardando()"
+                        >
+                          Activar
+                        </button>
+                      }
+                    }
+
+                    <button
+                      type="button"
+                      class="btn small"
+                      (click)="abrirAsignar(p)"
+                      [disabled]="guardando()"
+                    >
+                      {{ p.usuarioId === null ? 'Vincular existente' : 'Cambiar propietario' }}
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="6">
+                  <p class="empty">No hay resultados para mostrar.</p>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- PAGINACIÓN -->
+      <div class="pagination">
+        <span>Página {{ pagina() }} de {{ totalPaginas() }}</span>
+        <div class="actions">
+          <button
+            type="button"
+            class="btn small"
+            (click)="cambiarPagina(pagina() - 1)"
+            [disabled]="pagina() <= 1"
+          >
+            Anterior
+          </button>
+          <button
+            type="button"
+            class="btn small"
+            (click)="cambiarPagina(pagina() + 1)"
+            [disabled]="pagina() >= totalPaginas()"
+          >
+            Siguiente
+          </button>
+        </div>
+      </div>
+    }
+  </section>
+
+  <!-- FORMULARIO: CREAR / EDITAR / ASIGNAR -->
+  @if (modo() !== null) {
+    <section class="card form-card" aria-label="Formulario de propietarios">
+      <div class="form-heading">
+        <div>
+          <span class="kicker">CUENTAS DE PROPIETARIOS</span>
+          <h2>
+            @switch (modo()) {
+              @case ('crear') { Registrar nuevo propietario }
+              @case ('editar') { Editar propietario }
+              @case ('asignar') { Asignar administrador existente }
+            }
+          </h2>
+          <p class="muted">
+            Tienda: <strong>{{ seleccionada()?.tiendaNombre }}</strong>
+          </p>
+        </div>
+        <button
+          type="button"
+          class="btn"
+          (click)="cerrarFormulario()"
+          [disabled]="guardando()"
+        >
+          Cerrar
+        </button>
+      </div>
+
+      @if (cargandoDetalle()) {
+        <p class="empty">Consultando cuenta del propietario...</p>
+      } @else if (modo() === 'crear' || modo() === 'editar') {
+        <form
+          #formularioNg="ngForm"
+          (ngSubmit)="guardarFormulario()"
+          autocomplete="off"
+        >
+          <div class="form-grid">
+            <div class="field">
+              <label for="nombreProp">Nombre *</label>
+              <input
+                id="nombreProp"
+                name="nombre"
+                [(ngModel)]="form.nombre"
+                minlength="2"
+                maxlength="100"
+                required
+                [disabled]="guardando()"
+              />
+            </div>
+
+            <div class="field">
+              <label for="apellidoProp">Apellido *</label>
+              <input
+                id="apellidoProp"
+                name="apellido"
+                [(ngModel)]="form.apellido"
+                minlength="2"
+                maxlength="100"
+                required
+                [disabled]="guardando()"
+              />
+            </div>
+
+            <div class="field">
+              <label for="correoProp">Correo electrónico *</label>
+              <input
+                id="correoProp"
+                name="correo"
+                type="email"
+                [(ngModel)]="form.correo"
+                maxlength="150"
+                email
+                required
+                [disabled]="guardando()"
+              />
+            </div>
+
+            @if (modo() === 'crear') {
+              <div class="field">
+                <label for="claveProp">Contraseña inicial *</label>
+                <input
+                  id="claveProp"
+                  name="contrasena"
+                  type="password"
+                  [(ngModel)]="form.contrasena"
+                  autocomplete="new-password"
+                  minlength="12"
+                  required
+                  [disabled]="guardando()"
+                />
+              </div>
+            }
+          </div>
+
+          @if (modo() === 'crear') {
+            <p class="muted">
+              Se creará una cuenta ADMIN vinculada exclusivamente a la tienda.
+              Spring Boot almacenará un hash BCrypt, no la contraseña en texto plano.
+            </p>
+          } @else {
+            <p class="muted">
+              Solo se actualizarán el nombre, apellido y correo.
+              No se cambiará el rol ni la contraseña.
+            </p>
+          }
+
+          <div class="form-actions">
+            <button
+              type="button"
+              class="btn"
+              (click)="cerrarFormulario()"
+              [disabled]="guardando()"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              class="btn primary"
+              [disabled]="formularioNg.invalid || guardando()"
+            >
+              {{ guardando() ? 'Guardando...' : modo() === 'crear' ? 'Registrar propietario' : 'Guardar cambios' }}
+            </button>
+          </div>
+        </form>
+      } @else if (modo() === 'asignar') {
+        <div class="field">
+          <label for="candidatoProp">Administrador de esta tienda</label>
+          @if (cargandoCandidatos()) {
+            <p class="muted">Buscando administradores activos...</p>
+          } @else {
+            <select
+              id="candidatoProp"
+              name="candidatoProp"
+              [(ngModel)]="form.usuarioId"
+              [disabled]="guardando()"
+            >
+              <option [ngValue]="null">Seleccionar administrador</option>
+              @for (candidato of candidatos(); track candidato.usuarioId) {
+                <option [ngValue]="candidato.usuarioId">
+                  {{ candidato.nombre }} {{ candidato.apellido }} — {{ candidato.correo }}
+                </option>
+              }
+            </select>
+
+            @if (candidatos().length === 0) {
+              <p class="muted">
+                No hay administradores ADMIN activos disponibles en esta tienda.
+              </p>
+            }
+          }
+        </div>
+
+        <p class="muted">
+          Cambiar el propietario principal no desactiva el acceso
+          del administrador anterior.
+        </p>
+
+        <div class="form-actions">
+          <button
+            type="button"
+            class="btn"
+            (click)="cerrarFormulario()"
+            [disabled]="guardando()"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            class="btn primary"
+            (click)="guardarFormulario()"
+            [disabled]="guardando() || cargandoCandidatos() || form.usuarioId === null"
+          >
+            {{ guardando() ? 'Asignando...' : 'Confirmar asignación' }}
+          </button>
+        </div>
+      }
+    </section>
+  }
+
+  <!-- CONFIRMACIÓN PARA ACTIVAR / DESACTIVAR -->
+  @if (confirmacion(); as actual) {
+    <div class="overlay">
+      <section
+        class="confirm-card"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="tituloConfirmacion"
+      >
+        <span class="kicker">CONFIRMACIÓN DE SEGURIDAD</span>
+        <h2 id="tituloConfirmacion">
+          {{ actual.activar ? 'Activar acceso del propietario' : 'Desactivar acceso del propietario' }}
+        </h2>
+        <p>
+          Propietario: <strong>{{ actual.propietarioNombre }}</strong>
+        </p>
+        <p>
+          Tienda: <strong>{{ actual.tiendaNombre }}</strong>
+        </p>
+
+        @if (actual.activar) {
+          <p>La cuenta volverá a estar habilitada para iniciar sesión.</p>
+        } @else {
+          <p>
+            La cuenta perderá acceso a las rutas protegidas.
+            La tienda conservará su estado actual.
+          </p>
+        }
+
+        <div class="form-actions">
+          <button
+            type="button"
+            class="btn"
+            (click)="cancelarEstado()"
+            [disabled]="guardando()"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            class="btn"
+            [class.success-btn]="actual.activar"
+            [class.danger]="!actual.activar"
+            (click)="confirmarEstado()"
+            [disabled]="guardando()"
+          >
+            {{ guardando() ? 'Procesando...' : actual.activar ? 'Sí, activar' : 'Sí, desactivar' }}
+          </button>
+        </div>
+      </section>
+    </div>
+  }
+
+</main>

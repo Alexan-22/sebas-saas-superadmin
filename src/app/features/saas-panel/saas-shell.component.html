@@ -1,0 +1,197 @@
+
+    <div class="saas-layout">
+
+      <!-- MENU LATERAL -->
+      <aside
+        class="saas-sidebar"
+        [class.open]="menuAbierto()"
+        aria-label="Navegación del Super Admin"
+      >
+
+        <!-- LOGOTIPO -->
+        <a
+          class="brand"
+          routerLink="dashboard"
+          (click)="cerrarMenu()"
+        >
+          <span class="brand-mark">S</span>
+
+          <span>
+            <strong>SUPER ADMIN</strong>
+            <small>SAAS CONTROL CENTER</small>
+          </span>
+        </a>
+
+        <!-- NAVEGACION -->
+        <nav class="sidebar-nav">
+
+          <p class="nav-section">
+            PLATAFORMA
+          </p>
+
+          <a
+            routerLink="dashboard"
+            routerLinkActive="selected"
+            (click)="cerrarMenu()"
+          >
+            <span>▣</span>
+            Dashboard
+          </a>
+
+          <a
+            routerLink="tiendas"
+            routerLinkActive="selected"
+            (click)="cerrarMenu()"
+          >
+            <span>▦</span>
+            Gestión de tiendas
+          </a>
+
+          <a
+            routerLink="propietarios"
+            routerLinkActive="selected"
+            (click)="cerrarMenu()"
+          >
+            <span>♙</span>
+            Propietarios
+          </a>
+
+          <a
+            routerLink="dominios"
+            routerLinkActive="selected"
+            (click)="cerrarMenu()"
+          >
+            <span>◎</span>
+            Dominios
+          </a>
+
+          <p class="nav-section">
+            NEGOCIO
+          </p>
+
+          <a
+            routerLink="planes"
+            routerLinkActive="selected"
+            (click)="cerrarMenu()"
+          >
+            <span>▤</span>
+            Planes
+          </a>
+
+          <a
+            routerLink="suscripciones"
+            routerLinkActive="selected"
+            (click)="cerrarMenu()"
+          >
+            <span>◷</span>
+            Suscripciones
+          </a>
+
+          <a
+            routerLink="reportes"
+            routerLinkActive="selected"
+            (click)="cerrarMenu()"
+          >
+            <span>▥</span>
+            Reportes
+          </a>
+
+          <p class="nav-section">
+            SISTEMA
+          </p>
+
+          <a
+            routerLink="actividad"
+            routerLinkActive="selected"
+            (click)="cerrarMenu()"
+          >
+            <span>☷</span>
+            Actividad
+          </a>
+
+          <a
+            routerLink="configuracion"
+            routerLinkActive="selected"
+            (click)="cerrarMenu()"
+          >
+            <span>⚙</span>
+            Configuración
+          </a>
+
+        </nav>
+
+        <!-- INFORMACION INFERIOR -->
+        <div class="sidebar-bottom">
+          <strong>
+            Modo demostración
+          </strong>
+
+          <p>
+            Los cambios realizados se almacenan
+            localmente en este navegador.
+          </p>
+        </div>
+
+      </aside>
+
+      <!-- FONDO MOVIL -->
+      @if (menuAbierto()) {
+        <button
+          type="button"
+          class="overlay"
+          aria-label="Cerrar navegación"
+          (click)="cerrarMenu()"
+        ></button>
+      }
+
+      <!-- PANEL PRINCIPAL -->
+      <div class="saas-workspace">
+
+        <header class="saas-topbar">
+
+          <button
+            type="button"
+            class="menu-button"
+            aria-label="Abrir navegación"
+            (click)="alternarMenu()"
+          >
+            ☰
+          </button>
+
+          <div class="topbar-title">
+
+            <strong>
+              Panel de administración SaaS
+            </strong>
+
+            <small>
+              Sebas Collection · Plataforma multitienda
+            </small>
+
+          </div>
+
+          <div class="top-actions">
+
+            <span class="demo-indicator">
+              DEMO LOCAL
+            </span>
+
+            <span class="avatar">
+              S
+            </span>
+
+          </div>
+
+        </header>
+
+        <main class="saas-main">
+
+          <!-- AQUI SE CARGAN LAS PAGINAS -->
+          <router-outlet />
+
+        </main>
+
+      </div>
+
+    </div>
+  

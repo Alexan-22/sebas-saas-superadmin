@@ -1,0 +1,1620 @@
+
+<!-- ============================================= -->
+<!-- SEBAS COLLECTION SAAS V2                     -->
+<!-- GESTION REAL DE TIENDAS                      -->
+<!-- CREAR Y EDITAR TIENDAS                      -->
+<!-- Angular -> Spring Boot -> PostgreSQL         -->
+<!-- ============================================= -->
+
+
+<!-- ============================================= -->
+<!-- 1. ENCABEZADO                                -->
+<!-- ============================================= -->
+
+<header class="page-header">
+
+  <div>
+
+    <span class="kicker">
+      ADMINISTRACIÓN SAAS
+    </span>
+
+    <h1>
+      Gestión de tiendas
+    </h1>
+
+    <p class="subtitle">
+      Administra los negocios registrados
+      en Sebas Collection SaaS.
+    </p>
+
+  </div>
+
+
+  <div class="actions">
+
+    <!-- ACTUALIZAR -->
+
+    <button
+      type="button"
+      class="btn"
+      (click)="cargarTiendas()"
+      [disabled]="cargando() || guardando() || cambiandoEstado()"
+    >
+      {{
+        cargando()
+          ? 'Actualizando...'
+          : 'Actualizar'
+      }}
+    </button>
+
+
+    <!-- EXPORTAR -->
+
+    <button
+      type="button"
+      class="btn"
+      (click)="exportar()"
+      [disabled]="
+        cargando() ||
+        guardando() ||
+        cambiandoEstado() ||
+        paginaTiendas.length === 0
+      "
+    >
+      Exportar CSV
+    </button>
+
+
+    <!-- NUEVA TIENDA -->
+
+    <button
+      type="button"
+      class="btn primary"
+      (click)="nueva()"
+      [disabled]="guardando() || cambiandoEstado()"
+    >
+      + Nueva tienda
+    </button>
+
+  </div>
+
+</header>
+
+
+
+<!-- ============================================= -->
+<!-- 2. ESTADO DE LA INTEGRACION                   -->
+<!-- ============================================= -->
+
+<div class="notice info">
+
+  <strong>
+    Gestión conectada con PostgreSQL Supabase
+  </strong>
+
+  <p>
+    Puedes consultar, registrar, editar y administrar
+    los estados de las tiendas desde Spring Boot.
+  </p>
+
+  <p>
+    Los cambios de estado requieren confirmación.
+    Propietarios, planes y suscripciones se integrarán
+    en las siguientes etapas.
+  </p>
+
+</div>
+
+
+
+<!-- ============================================= -->
+<!-- 3. INDICADORES                               -->
+<!-- ============================================= -->
+
+<section class="cards kpi-grid">
+
+
+  <!-- TOTAL TIENDAS -->
+
+  <article class="card stat">
+
+    <div class="label">
+      Tiendas encontradas
+    </div>
+
+    <div class="value">
+      {{
+        cargando() || error
+          ? '—'
+          : totalTiendas
+      }}
+    </div>
+
+    <div class="detail">
+      Registros que coinciden con la búsqueda
+    </div>
+
+  </article>
+
+
+
+  <!-- TIENDAS EN PAGINA -->
+
+  <article class="card stat">
+
+    <div class="label">
+      Tiendas en esta página
+    </div>
+
+    <div class="value kpi-green">
+      {{
+        cargando() || error
+          ? '—'
+          : paginaTiendas.length
+      }}
+    </div>
+
+    <div class="detail">
+      Información obtenida desde Spring Boot
+    </div>
+
+  </article>
+
+
+
+  <!-- PAGINAS -->
+
+  <article class="card stat">
+
+    <div class="label">
+      Total de páginas
+    </div>
+
+    <div class="value">
+      {{
+        cargando() || error
+          ? '—'
+          : totalPaginas
+      }}
+    </div>
+
+    <div class="detail">
+      Hasta {{ tamano }} tiendas por página
+    </div>
+
+  </article>
+
+
+
+  <!-- OPERACIONES -->
+
+  <article class="card stat">
+
+    <div class="label">
+      Activas en esta página
+    </div>
+
+    <div class="value kpi-green">
+      {{ activasEnPagina }}
+    </div>
+
+    <div class="detail">
+      {{ pendientesEnPagina }} pendientes ·
+      {{ suspendidasEnPagina }} suspendidas
+      (solo esta página)
+    </div>
+
+  </article>
+
+</section>
+
+
+
+<!-- ============================================= -->
+<!-- 4. MENSAJES GENERALES                        -->
+<!-- ============================================= -->
+
+@if (mensaje) {
+
+  <div
+    class="notice success"
+    role="status"
+  >
+    {{ mensaje }}
+  </div>
+
+}
+
+
+@if (error) {
+
+  <div
+    class="notice error"
+    role="alert"
+  >
+    {{ error }}
+  </div>
+
+}
+
+
+@if (cargando()) {
+
+  <div
+    class="notice info"
+    role="status"
+  >
+    Consultando tiendas en Spring Boot...
+  </div>
+
+}
+
+
+
+<!-- ============================================= -->
+<!-- 5. FORMULARIO CREAR / EDITAR TIENDA           -->
+<!-- ============================================= -->
+
+@if (formVisible) {
+
+  <section class="card form-panel">
+
+
+    <!-- ENCABEZADO DEL FORMULARIO -->
+
+    <div class="form-heading">
+
+      <div>
+
+        <span class="kicker">
+          {{
+            esEdicion
+              ? 'EDITAR NEGOCIO'
+              : 'REGISTRO DE NEGOCIO'
+          }}
+        </span>
+
+        <h2>
+          {{
+            esEdicion
+              ? 'Editar tienda'
+              : 'Registrar nueva tienda'
+          }}
+        </h2>
+
+        <p class="subtitle">
+
+          @if (esEdicion) {
+
+            Modifica la información comercial
+            de la tienda registrada en Supabase.
+
+          } @else {
+
+            Registra un nuevo negocio
+            en PostgreSQL Supabase.
+
+          }
+
+        </p>
+
+      </div>
+
+
+      <button
+        type="button"
+        class="btn small"
+        (click)="cerrarFormulario()"
+        [disabled]="guardando() || cambiandoEstado()"
+      >
+        Cerrar
+      </button>
+
+    </div>
+
+
+
+    <!-- FORMULARIO -->
+
+    <form
+      #tiendaForm="ngForm"
+      (ngSubmit)="guardar()"
+      autocomplete="off"
+    >
+
+
+      <div class="form-grid">
+
+
+        <!-- ================================= -->
+        <!-- NOMBRE COMERCIAL                  -->
+        <!-- ================================= -->
+
+        <div class="field">
+
+          <label for="nombreNegocio">
+            Nombre del negocio *
+          </label>
+
+          <input
+            id="nombreNegocio"
+            name="nombre"
+            type="text"
+            [(ngModel)]="form.nombre"
+            #nombreModel="ngModel"
+            (ngModelChange)="limpiarMensajes()"
+            required
+            minlength="3"
+            maxlength="100"
+            [disabled]="guardando() || cambiandoEstado()"
+            placeholder="Ej. NestorCollection"
+            autocomplete="off"
+          />
+
+          <small class="muted">
+            Entre 3 y 100 caracteres.
+          </small>
+
+
+          @if (
+            nombreModel.invalid &&
+            (
+              nombreModel.touched ||
+              nombreModel.dirty
+            )
+          ) {
+
+            <small
+              class="notice error"
+              role="alert"
+            >
+              El nombre del negocio debe tener
+              al menos 3 caracteres.
+            </small>
+
+          }
+
+        </div>
+
+
+
+        <!-- ================================= -->
+        <!-- SUBDOMINIO                        -->
+        <!-- ================================= -->
+
+        <div class="field">
+
+          <label for="subdominio">
+            Subdominio *
+          </label>
+
+          <input
+            id="subdominio"
+            name="subdominio"
+            type="text"
+            [(ngModel)]="form.subdominio"
+            #subdominioModel="ngModel"
+            (ngModelChange)="limpiarMensajes()"
+            required
+            minlength="3"
+            maxlength="40"
+            pattern="[A-Za-z0-9](?:[A-Za-z0-9-]{1,38}[A-Za-z0-9])"
+            [disabled]="guardando() || cambiandoEstado()"
+            placeholder="nestorcollection"
+            autocomplete="off"
+          />
+
+          <small class="muted">
+            Entre 3 y 40 caracteres.
+            Letras, números y guiones;
+            sin espacios ni guiones al inicio o final.
+          </small>
+
+
+          @if (
+            subdominioModel.invalid &&
+            (
+              subdominioModel.touched ||
+              subdominioModel.dirty
+            )
+          ) {
+
+            <small
+              class="notice error"
+              role="alert"
+            >
+              Ingresa un subdominio válido.
+            </small>
+
+          }
+
+        </div>
+
+
+      </div>
+
+
+
+      <!-- =================================== -->
+      <!-- VISTA PREVIA SUBDOMINIO             -->
+      <!-- =================================== -->
+
+      <div class="notice info">
+
+        <strong>
+          Vista previa del subdominio
+        </strong>
+
+        <p>
+
+          @if (vistaSubdominio) {
+
+            <code class="subdomain">
+              {{ vistaSubdominio }}
+            </code>
+
+          } @else {
+
+            <span class="muted">
+              Escribe el subdominio.
+            </span>
+
+          }
+
+        </p>
+
+        <small class="muted">
+          Se almacenará normalizado en minúsculas.
+        </small>
+
+        @if (esEdicion) {
+
+          <p>
+            <strong>Importante:</strong>
+            cambiar el subdominio podría afectar
+            los enlaces existentes del negocio.
+          </p>
+
+        }
+
+      </div>
+
+
+
+      <!-- =================================== -->
+      <!-- CAMPOS SOLO PARA EDITAR TIENDA      -->
+      <!-- =================================== -->
+
+      @if (esEdicion) {
+
+
+        <div class="form-grid">
+
+
+          <!-- =============================== -->
+          <!-- COLOR PRINCIPAL                 -->
+          <!-- =============================== -->
+
+          <div class="field">
+
+            <label for="colorPrincipal">
+              Color principal *
+            </label>
+
+            <input
+              id="colorPrincipal"
+              name="colorPrimario"
+              type="text"
+              [(ngModel)]="form.colorPrimario"
+              #colorModel="ngModel"
+              (ngModelChange)="limpiarMensajes()"
+              required
+              pattern="#[0-9a-fA-F]{6}"
+              maxlength="7"
+              [disabled]="guardando() || cambiandoEstado()"
+              placeholder="#7C3AED"
+            />
+
+            <small class="muted">
+              Formato hexadecimal: #RRGGBB
+            </small>
+
+
+            @if (
+              colorModel.invalid &&
+              (
+                colorModel.touched ||
+                colorModel.dirty
+              )
+            ) {
+
+              <small
+                class="notice error"
+                role="alert"
+              >
+                Ingresa un color válido,
+                por ejemplo #7C3AED.
+              </small>
+
+            }
+
+          </div>
+
+
+
+          <!-- =============================== -->
+          <!-- SELECTOR VISUAL DE COLOR        -->
+          <!-- =============================== -->
+
+          <div class="field">
+
+            <label for="selectorColor">
+              Seleccionar color
+            </label>
+
+            <input
+              id="selectorColor"
+              type="color"
+              [value]="form.colorPrimario"
+              (input)="
+                form.colorPrimario =
+                  $any($event.target).value.toUpperCase();
+                limpiarMensajes()
+              "
+              [disabled]="guardando() || cambiandoEstado()"
+              aria-label="Seleccionar color principal de la tienda"
+            />
+
+            <small class="muted">
+              Selecciona el color comercial
+              de la tienda.
+            </small>
+
+          </div>
+
+
+
+          <!-- =============================== -->
+          <!-- LOGO URL                        -->
+          <!-- =============================== -->
+
+          <div class="field">
+
+            <label for="logoUrl">
+              URL del logo
+            </label>
+
+            <input
+              id="logoUrl"
+              name="logoUrl"
+              type="url"
+              [(ngModel)]="form.logoUrl"
+              #logoModel="ngModel"
+              (ngModelChange)="limpiarMensajes()"
+              pattern="https://.+"
+              maxlength="500"
+              [disabled]="guardando() || cambiandoEstado()"
+              placeholder="https://ejemplo.com/logo.png"
+              autocomplete="off"
+            />
+
+            <small class="muted">
+              Opcional. Debe comenzar con https://
+              y tener un máximo de 500 caracteres.
+              Déjalo vacío para retirar el logo.
+            </small>
+
+
+            @if (
+              logoModel.invalid &&
+              (
+                logoModel.touched ||
+                logoModel.dirty
+              )
+            ) {
+
+              <small
+                class="notice error"
+                role="alert"
+              >
+                Ingresa una URL HTTPS válida
+                o deja el campo vacío.
+              </small>
+
+            }
+
+          </div>
+
+
+
+          <!-- =============================== -->
+          <!-- INFORMACION LOGO                -->
+          <!-- =============================== -->
+
+          <div class="field">
+
+            <label>
+              Logo actual
+            </label>
+
+            @if (form.logoUrl) {
+
+              <a
+                [href]="form.logoUrl"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Abrir URL del logo
+              </a>
+
+            } @else {
+
+              <span class="muted">
+                Sin logo configurado
+              </span>
+
+            }
+
+          </div>
+
+        </div>
+
+
+
+        <!-- AVISO EDICION -->
+
+        <div class="notice info">
+
+          <strong>
+            Actualización real
+          </strong>
+
+          <p>
+            Los cambios se guardarán
+            en PostgreSQL Supabase.
+          </p>
+
+          <p>
+            El identificador y la fecha
+            original de registro no cambiarán.
+          </p>
+
+        </div>
+
+      } @else {
+
+
+        <!-- AVISO NUEVA TIENDA -->
+
+        <div class="notice info">
+
+          <strong>
+            Registro inicial
+          </strong>
+
+          <p>
+            La nueva tienda se creará con
+            nombre y subdominio.
+          </p>
+
+          <p>
+            La asignación de propietario,
+            plan y suscripción se realizará
+            en las siguientes etapas.
+          </p>
+
+        </div>
+
+      }
+
+
+
+      <!-- =================================== -->
+      <!-- PROCESANDO SOLICITUD                -->
+      <!-- =================================== -->
+
+      @if (guardando()) {
+
+        <div
+          class="notice info"
+          role="status"
+        >
+
+          {{
+            esEdicion
+              ? 'Actualizando la tienda en Supabase...'
+              : 'Registrando tienda en Supabase...'
+          }}
+
+        </div>
+
+      }
+
+
+
+      <!-- =================================== -->
+      <!-- ACCIONES DEL FORMULARIO             -->
+      <!-- =================================== -->
+
+      <div class="form-actions">
+
+
+        <button
+          type="button"
+          class="btn"
+          (click)="cerrarFormulario()"
+          [disabled]="guardando() || cambiandoEstado()"
+        >
+          Cancelar
+        </button>
+
+
+
+        <button
+          type="submit"
+          class="btn primary"
+          [disabled]="
+            tiendaForm.invalid ||
+            guardando()
+          "
+        >
+
+          @if (guardando()) {
+
+            {{
+              esEdicion
+                ? 'Guardando cambios...'
+                : 'Creando tienda...'
+            }}
+
+          } @else {
+
+            {{
+              esEdicion
+                ? 'Guardar cambios'
+                : 'Crear tienda'
+            }}
+
+          }
+
+        </button>
+
+      </div>
+
+
+    </form>
+
+  </section>
+
+}
+
+
+
+<!-- ============================================= -->
+<!-- CONFIRMACION ANTES DE CAMBIAR ESTADO          -->
+<!-- ============================================= -->
+
+@if (confirmacionEstado; as confirmacion) {
+
+  <section class="card confirm-card" aria-labelledby="tituloConfirmacionEstado">
+
+    <div class="form-heading">
+      <div>
+        <span class="kicker">CAMBIO DE ESTADO</span>
+        <h2 id="tituloConfirmacionEstado">Confirmar cambio de estado</h2>
+        <p class="subtitle">
+          Esta acción modifica el estado real en Supabase.
+        </p>
+      </div>
+    </div>
+
+    <p>
+      Tienda: <strong>{{ confirmacion.nombreTienda }}</strong>
+    </p>
+
+    <p>
+      Estado actual:
+      <span class="badge" [ngClass]="confirmacion.estadoActual">
+        {{ nombreEstado(confirmacion.estadoActual) }}
+      </span>
+    </p>
+
+    <p>
+      Nuevo estado:
+      <span class="badge" [ngClass]="confirmacion.nuevoEstado">
+        {{ nombreEstado(confirmacion.nuevoEstado) }}
+      </span>
+    </p>
+
+    @if (confirmacion.nuevoEstado === 'SUSPENDIDA') {
+      <div class="notice error" role="alert">
+        Al suspender esta tienda, se restringirá su acceso operativo.
+        No suspendas la tienda principal durante las pruebas.
+      </div>
+    } @else if (confirmacion.nuevoEstado === 'PENDIENTE') {
+      <div class="notice info">
+        La tienda quedará pendiente y su acceso operativo se restringirá.
+      </div>
+    } @else {
+      <div class="notice info">
+        La tienda quedará activa y podrá operar según sus permisos.
+      </div>
+    }
+
+    @if (cambiandoEstado()) {
+      <div class="notice info" role="status">
+        Actualizando el estado de la tienda...
+      </div>
+    }
+
+    <div class="form-actions">
+      <button
+        type="button"
+        class="btn"
+        (click)="cancelarCambioEstado()"
+        [disabled]="cambiandoEstado()"
+      >
+        Cancelar
+      </button>
+
+      <button
+        type="button"
+        class="btn"
+        [ngClass]="confirmacion.nuevoEstado === 'SUSPENDIDA' ? 'danger' : 'primary'"
+        (click)="confirmarCambioEstado()"
+        [disabled]="cambiandoEstado() || guardando() || cargando()"
+      >
+        {{ cambiandoEstado() ? 'Guardando...' : 'Confirmar cambio' }}
+      </button>
+    </div>
+
+  </section>
+
+}
+
+
+<!-- ============================================= -->
+<!-- 6. DETALLES DE LA TIENDA                      -->
+<!-- ============================================= -->
+
+@if (tiendaDetalle; as tienda) {
+
+  <section class="card detail-card">
+
+
+    <div class="form-heading">
+
+      <div>
+
+        <span class="kicker">
+          INFORMACIÓN DEL NEGOCIO
+        </span>
+
+        <h2>
+          {{ tienda.nombre }}
+        </h2>
+
+        <p class="subtitle">
+          Datos registrados en PostgreSQL Supabase.
+        </p>
+
+      </div>
+
+
+      <button
+        type="button"
+        class="btn small"
+        (click)="cerrarDetalle()"
+      >
+        Cerrar
+      </button>
+
+    </div>
+
+
+
+    <div class="detail-grid">
+
+
+      <!-- ID -->
+
+      <div>
+
+        <span class="detail-label">
+          Identificador
+        </span>
+
+        <strong>
+          {{ tienda.id }}
+        </strong>
+
+      </div>
+
+
+
+      <!-- NOMBRE -->
+
+      <div>
+
+        <span class="detail-label">
+          Nombre comercial
+        </span>
+
+        <strong>
+          {{ tienda.nombre }}
+        </strong>
+
+      </div>
+
+
+
+      <!-- SUBDOMINIO -->
+
+      <div>
+
+        <span class="detail-label">
+          Subdominio
+        </span>
+
+        <strong>
+          {{ tienda.subdominio }}
+        </strong>
+
+      </div>
+
+
+
+      <!-- ESTADO REAL -->
+
+      <div>
+        <span class="detail-label">Estado de la tienda</span>
+        <span class="badge" [ngClass]="tienda.estado">
+          {{ nombreEstado(tienda.estado) }}
+        </span>
+      </div>
+
+
+      <!-- COLOR -->
+
+      <div>
+
+        <span class="detail-label">
+          Color principal
+        </span>
+
+        <strong>
+          {{
+            tienda.colorPrimario ||
+            'No definido'
+          }}
+        </strong>
+
+      </div>
+
+
+
+      <!-- LOGO -->
+
+      <div>
+
+        <span class="detail-label">
+          Logo
+        </span>
+
+        @if (tienda.logoUrl) {
+
+          <a
+            [href]="tienda.logoUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Ver logo
+          </a>
+
+        } @else {
+
+          <strong>
+            Sin logo
+          </strong>
+
+        }
+
+      </div>
+
+
+
+      <!-- FECHA -->
+
+      <div>
+
+        <span class="detail-label">
+          Fecha de registro
+        </span>
+
+        <strong>
+
+          {{
+            tienda.creadaEn
+              ? (
+                  tienda.creadaEn |
+                  date:'dd/MM/yyyy HH:mm'
+                )
+              : 'Sin fecha'
+          }}
+
+        </strong>
+
+      </div>
+
+    </div>
+
+
+
+    <!-- ACCIONES DETALLE -->
+
+    <div class="detail-actions">
+
+      <button
+        type="button"
+        class="btn primary"
+        (click)="editar(tienda)"
+        [disabled]="guardando() || cambiandoEstado()"
+      >
+        Editar información
+      </button>
+
+      @if (tienda.estado !== 'ACTIVA') {
+        <button type="button" class="btn"
+          (click)="solicitarCambioEstado(tienda, 'ACTIVA')"
+          [disabled]="guardando() || cambiandoEstado() || cargando()">
+          Activar
+        </button>
+      }
+
+      @if (tienda.estado !== 'PENDIENTE') {
+        <button type="button" class="btn"
+          (click)="solicitarCambioEstado(tienda, 'PENDIENTE')"
+          [disabled]="guardando() || cambiandoEstado() || cargando()">
+          Marcar pendiente
+        </button>
+      }
+
+      @if (tienda.estado !== 'SUSPENDIDA') {
+        <button type="button" class="btn danger"
+          (click)="solicitarCambioEstado(tienda, 'SUSPENDIDA')"
+          [disabled]="guardando() || cambiandoEstado() || cargando()">
+          Suspender
+        </button>
+      }
+
+    </div>
+
+  </section>
+
+}
+
+
+
+<!-- ============================================= -->
+<!-- 7. TABLA DE TIENDAS REALES                    -->
+<!-- ============================================= -->
+
+<section class="card">
+
+
+  <!-- BARRA DE FILTROS -->
+
+  <div class="toolbar">
+
+
+    <!-- BUSCAR -->
+
+    <div class="field search">
+
+      <label for="buscarTienda">
+        Buscar negocio
+      </label>
+
+      <input
+        id="buscarTienda"
+        name="buscarTienda"
+        type="search"
+        [(ngModel)]="busqueda"
+        (keyup.enter)="reiniciarPagina()"
+        maxlength="80"
+        [disabled]="cargando() || guardando() || cambiandoEstado()"
+        placeholder="Nombre o subdominio..."
+      />
+
+    </div>
+
+
+
+    <!-- ORDEN -->
+
+    <div class="field">
+
+      <label for="ordenarTienda">
+        Ordenar página actual
+      </label>
+
+      <select
+        id="ordenarTienda"
+        name="ordenarTienda"
+        [(ngModel)]="orden"
+      >
+
+        <option value="recientes">
+          Más recientes
+        </option>
+
+        <option value="antiguas">
+          Más antiguas
+        </option>
+
+        <option value="nombre-asc">
+          Nombre A-Z
+        </option>
+
+        <option value="nombre-desc">
+          Nombre Z-A
+        </option>
+
+      </select>
+
+    </div>
+
+  </div>
+
+
+
+  <!-- FILTROS Y CONTADORES -->
+
+  <div class="filter-actions">
+
+
+    <span class="muted">
+
+      @if (cargando()) {
+
+        Buscando tiendas...
+
+      } @else if (error && !formVisible) {
+
+        No se pudo completar la última operación.
+
+      } @else {
+
+        {{ totalTiendas }} tiendas encontradas
+
+      }
+
+    </span>
+
+
+
+    <div class="actions">
+
+
+      <button
+        type="button"
+        class="btn small primary"
+        (click)="reiniciarPagina()"
+        [disabled]="cargando() || guardando() || cambiandoEstado()"
+      >
+        Buscar
+      </button>
+
+
+      <button
+        type="button"
+        class="btn small"
+        (click)="limpiarFiltros()"
+        [disabled]="cargando() || guardando() || cambiandoEstado()"
+      >
+        Limpiar filtros
+      </button>
+
+    </div>
+
+  </div>
+
+
+
+  <!-- ======================================== -->
+  <!-- TABLA                                    -->
+  <!-- ======================================== -->
+
+  <div class="table-wrap">
+
+    <table>
+
+
+      <thead>
+
+        <tr>
+
+          <th>NEGOCIO</th>
+
+          <th>SUBDOMINIO</th>
+
+          <th>ESTADO</th>
+
+          <th>COLOR</th>
+
+          <th>LOGO</th>
+
+          <th>FECHA DE REGISTRO</th>
+
+          <th>ACCIONES</th>
+
+        </tr>
+
+      </thead>
+
+
+
+      <tbody>
+
+
+        <!-- REGISTROS REALES -->
+
+        @if (!cargando()) {
+
+          @for (
+            tienda of paginaTiendas;
+            track tienda.id
+          ) {
+
+            <tr>
+
+
+              <!-- NOMBRE -->
+
+              <td>
+
+                <div class="business-name">
+                  {{ tienda.nombre }}
+                </div>
+
+                <div class="muted">
+                  ID: {{ tienda.id }}
+                </div>
+
+              </td>
+
+
+
+              <!-- SUBDOMINIO -->
+
+              <td>
+
+                <code class="subdomain">
+                  {{ tienda.subdominio }}
+                </code>
+
+              </td>
+
+
+
+              <!-- ESTADO REAL -->
+
+              <td>
+                <span class="badge" [ngClass]="tienda.estado">
+                  {{ nombreEstado(tienda.estado) }}
+                </span>
+              </td>
+
+
+              <!-- COLOR -->
+
+              <td>
+
+                <span>
+                  {{
+                    tienda.colorPrimario ||
+                    'No definido'
+                  }}
+                </span>
+
+              </td>
+
+
+
+              <!-- LOGO -->
+
+              <td>
+
+                @if (tienda.logoUrl) {
+
+                  <a
+                    [href]="tienda.logoUrl"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Ver logo
+                  </a>
+
+                } @else {
+
+                  <span class="muted">
+                    Sin logo
+                  </span>
+
+                }
+
+              </td>
+
+
+
+              <!-- FECHA -->
+
+              <td>
+
+                {{
+                  tienda.creadaEn
+                    ? (
+                        tienda.creadaEn |
+                        date:'dd/MM/yyyy HH:mm'
+                      )
+                    : 'Sin fecha'
+                }}
+
+              </td>
+
+
+
+              <!-- ACCIONES -->
+
+              <td>
+
+                <div class="actions">
+
+
+                  <!-- VER -->
+
+                  <button
+                    type="button"
+                    class="btn small"
+                    (click)="verDetalle(tienda.id)"
+                    [disabled]="guardando() || cambiandoEstado()"
+                  >
+                    Ver
+                  </button>
+
+
+
+                  <!-- EDITAR -->
+
+                  <button
+                    type="button"
+                    class="btn small"
+                    (click)="editar(tienda)"
+                    [disabled]="guardando() || cambiandoEstado()"
+                  >
+                    Editar
+                  </button>
+
+                  @if (tienda.estado !== 'ACTIVA') {
+                    <button type="button" class="btn small"
+                      (click)="solicitarCambioEstado(tienda, 'ACTIVA')"
+                      [disabled]="guardando() || cambiandoEstado() || cargando()">
+                      Activar
+                    </button>
+                  }
+
+                  @if (tienda.estado !== 'PENDIENTE') {
+                    <button type="button" class="btn small"
+                      (click)="solicitarCambioEstado(tienda, 'PENDIENTE')"
+                      [disabled]="guardando() || cambiandoEstado() || cargando()">
+                      Pendiente
+                    </button>
+                  }
+
+                  @if (tienda.estado !== 'SUSPENDIDA') {
+                    <button type="button" class="btn small danger"
+                      (click)="solicitarCambioEstado(tienda, 'SUSPENDIDA')"
+                      [disabled]="guardando() || cambiandoEstado() || cargando()">
+                      Suspender
+                    </button>
+                  }
+
+                </div>
+
+              </td>
+
+            </tr>
+
+          }
+
+        }
+
+
+
+        <!-- CARGANDO -->
+
+        @if (cargando()) {
+
+          <tr>
+
+            <td
+              colspan="7"
+              class="empty"
+            >
+
+              <div class="empty-state">
+
+                <strong>
+                  Cargando tiendas...
+                </strong>
+
+                <p>
+                  Consultando Spring Boot
+                  y PostgreSQL Supabase.
+                </p>
+
+              </div>
+
+            </td>
+
+          </tr>
+
+        }
+
+
+
+        <!-- SIN RESULTADOS -->
+
+        @if (
+          !cargando() &&
+          !error &&
+          paginaTiendas.length === 0
+        ) {
+
+          <tr>
+
+            <td
+              colspan="7"
+              class="empty"
+            >
+
+              <div class="empty-state">
+
+                <strong>
+                  No se encontraron tiendas
+                </strong>
+
+                <p>
+                  Prueba otra búsqueda
+                  o registra una nueva tienda.
+                </p>
+
+              </div>
+
+            </td>
+
+          </tr>
+
+        }
+
+
+
+        <!-- ERROR SIN RESULTADOS -->
+
+        @if (
+          !cargando() &&
+          error &&
+          paginaTiendas.length === 0
+        ) {
+
+          <tr>
+
+            <td
+              colspan="7"
+              class="empty"
+            >
+
+              <div class="empty-state">
+
+                <strong>
+                  No se pudieron cargar los datos.
+                </strong>
+
+                <p>
+                  Comprueba la conexión con Spring Boot
+                  y vuelve a actualizar.
+                </p>
+
+              </div>
+
+            </td>
+
+          </tr>
+
+        }
+
+      </tbody>
+
+    </table>
+
+  </div>
+
+
+
+  <!-- ======================================== -->
+  <!-- PAGINACION                               -->
+  <!-- ======================================== -->
+
+  <footer class="table-footer">
+
+
+    <span>
+
+      @if (cargando()) {
+
+        Cargando...
+
+      } @else {
+
+        Mostrando
+        {{ desde }}–{{ hasta }}
+        de {{ totalTiendas }} tiendas
+
+      }
+
+    </span>
+
+
+
+    <div class="actions">
+
+
+      <!-- ANTERIOR -->
+
+      <button
+        type="button"
+        class="btn small"
+        [disabled]="
+          cargando() ||
+          guardando() ||
+          cambiandoEstado() ||
+          pagina === 0
+        "
+        (click)="anterior()"
+      >
+        Anterior
+      </button>
+
+
+
+      <!-- PAGINA -->
+
+      <span>
+        Página {{ pagina + 1 }}
+        de {{ totalPaginas }}
+      </span>
+
+
+
+      <!-- SIGUIENTE -->
+
+      <button
+        type="button"
+        class="btn small"
+        [disabled]="
+          cargando() ||
+          guardando() ||
+          cambiandoEstado() ||
+          pagina + 1 >= totalPaginas
+        "
+        (click)="siguiente()"
+      >
+        Siguiente
+      </button>
+
+    </div>
+
+  </footer>
+
+</section>

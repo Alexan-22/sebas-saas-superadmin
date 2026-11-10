@@ -1,0 +1,104 @@
+
+:host { display: block; }
+
+.subscription-stats {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.secondary-stats {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.metric-green { color: #059669; }
+.metric-purple { color: #7224ee; }
+.metric-red { color: #dc3545; }
+.metric-orange { color: #d97706; }
+
+.secondary-value { font-size: 24px !important; }
+
+.alerts-panel {
+  margin-bottom: 20px;
+  border-color: #fbd89b;
+}
+
+.section-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+
+.alert-count {
+  background: #fff1cf;
+  color: #995c00;
+  border-radius: 20px;
+  padding: 7px 10px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.alert-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-top: 1px solid #edf0f5;
+  padding: 12px 0;
+}
+
+.alert-symbol {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: #fff1d6;
+  color: #bc7500;
+  font-weight: 800;
+}
+
+.alert-info { flex: 1; min-width: 0; }
+.alert-info strong, .alert-info small { display: block; }
+.alert-info strong { font-size: 12px; }
+.alert-info small { color: #8090a7; font-size: 11px; margin-top: 5px; }
+
+.days-pill {
+  white-space: nowrap;
+  background: #fff4de;
+  color: #986100;
+  border-radius: 8px;
+  padding: 7px 10px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.filter-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.badge.PENDIENTE { background: #ede8ff; color: #6528c8; }
+.badge.VENCIDA { background: #fff1dc; color: #a35c00; }
+.badge.CANCELADA { background: #f3f4f6; color: #656b76; }
+.badge.ACTIVA { background: #dff8eb; color: #08764c; }
+
+@media (max-width: 1100px) {
+  .subscription-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 700px) {
+  .secondary-stats { grid-template-columns: 1fr; }
+  .alert-item { flex-wrap: wrap; }
+}
+
+@media (max-width: 480px) {
+  .subscription-stats { grid-template-columns: 1fr; }
+}
+
+  

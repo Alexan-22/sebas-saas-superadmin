@@ -1,0 +1,271 @@
+
+<header class="page-header">
+  <div>
+    <span class="kicker">INFRAESTRUCTURA SAAS</span>
+    <h1>Gestión de dominios</h1>
+    <p class="subtitle">Administra y verifica los dominios personalizados de tus tiendas.</p>
+  </div>
+
+  <div class="actions">
+    <button class="btn" type="button" (click)="cargar()" [disabled]="cargando">Actualizar</button>
+    <button class="btn" type="button" (click)="exportar()" [disabled]="!filtrados.length">Exportar CSV</button>
+    <button class="btn primary" type="button" (click)="nueva()">+ Vincular dominio</button>
+  </div>
+</header>
+
+<div class="notice info">
+  La verificación DNS confirma el control del dominio. La publicación web y HTTPS
+  requieren configuración adicional en el hosting.
+</div>
+
+@if (mensaje) {
+  <div class="notice success">{{ mensaje }}</div>
+}
+
+@if (error) {
+  <div class="notice error" role="alert">{{ error }}</div>
+}
+
+@if (cargando) {
+  <div class="notice info">Cargando dominios desde Supabase...</div>
+}
+
+<section class="cards domain-stats">
+  <article class="card stat">
+    <div class="label">Dominios registrados</div>
+    <div class="value">{{ estadisticas.total }}</div>
+    <div class="detail">Registros persistentes</div>
+  </article>
+
+  <article class="card stat">
+    <div class="label">DNS verificados</div>
+    <div class="value metric-green">{{ estadisticas.verificados }}</div>
+    <div class="detail">Propiedad comprobada</div>
+  </article>
+
+  <article class="card stat">
+    <div class="label">Pendientes</div>
+    <div class="value metric-orange">{{ estadisticas.pendientes }}</div>
+    <div class="detail">Esperando registro TXT</div>
+  </article>
+
+  <article class="card stat">
+    <div class="label">Con error</div>
+    <div class="value metric-red">{{ estadisticas.errores }}</div>
+    <div class="detail">Requieren revisión</div>
+  </article>
+</section>
+
+@if (formVisible) {
+  <section class="card form-panel">
+    <div class="form-heading">
+      <div>
+        <span class="kicker">VINCULACIÓN</span>
+        <h2>{{ editandoId ? 'Editar dominio' : 'Registrar dominio' }}</h2>
+        <p class="subtitle">Selecciona la tienda y el nombre del dominio personalizado.</p>
+      </div>
+      <button class="btn small" type="button" (click)="cerrarFormulario()">Cerrar</button>
+    </div>
+
+    <form #dominioForm="ngForm" (ngSubmit)="guardar()">
+      <div class="form-grid">
+        <div class="field">
+          <label for="domTienda">Tienda *</label>
+          <select id="domTienda" name="tiendaId" [(ngModel)]="form.tiendaId" required>
+            <option [ngValue]="null">Seleccionar tienda</option>
+            @for (t of tiendas; track t.id) {
+              <option [ngValue]="t.id">{{ t.nombre }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="domNombre">Dominio personalizado *</label>
+          <input id="domNombre" name="nombre" type="text" maxlength="253"
+                 [(ngModel)]="form.nombre" required
+                 placeholder="tienda.ejemplo.com">
+          <small class="muted">Sin https://, rutas ni espacios.</small>
+        </div>
+      </div>
+
+      <div class="domain-preview">
+        <div class="preview-heading">
+          <span class="preview-icon">◎</span>
+          <div>
+            <strong>Vista previa del dominio</strong>
+            <small>Dirección propuesta</small>
+          </div>
+        </div>
+        <div class="preview-url">
+          <span>https://</span>
+          <strong>{{ dominioNormalizado(form.nombre) || 'tienda.ejemplo.com' }}</strong>
+        </div>
+        <p class="preview-note">
+          Esta dirección es ilustrativa hasta que el dominio sea configurado en el hosting.
+        </p>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn" type="button" (click)="cerrarFormulario()">Cancelar</button>
+        <button class="btn primary" type="submit"
+                [disabled]="dominioForm.invalid || guardando">
+          {{ guardando ? 'Guardando...' : 'Guardar dominio' }}
+        </button>
+      </div>
+    </form>
+  </section>
+}
+
+@if (dominioDetalle; as d) {
+  <section class="card detail-panel">
+    <div class="form-heading">
+      <div>
+        <span class="kicker">DETALLE DEL DOMINIO</span>
+        <h2>{{ d.nombre }}</h2>
+        <span class="badge" [ngClass]="d.estado">{{ textoEstado(d.estado) }}</span>
+      </div>
+      <button class="btn small" type="button" (click)="detalleId = null">Cerrar</button>
+    </div>
+
+    <div class="detail-grid">
+      <div><span class="detail-label">Tienda</span><strong>{{ d.tienda }}</strong></div>
+      <div><span class="detail-label">Dominio</span><strong>{{ d.nombre }}</strong></div>
+      <div><span class="detail-label">Estado DNS</span><strong>{{ textoEstado(d.estado) }}</strong></div>
+      <div><span class="detail-label">Creado</span><strong>{{ d.creado_en | date:'dd/MM/yyyy HH:mm' }}</strong></div>
+    </div>
+
+    <div class="dns-info">
+      <div class="dns-heading">
+        <span class="dns-icon">◎</span>
+        <div>
+          <h3>Verificación de propiedad DNS</h3>
+          <p>Agrega este registro en el proveedor DNS de tu dominio.</p>
+        </div>
+      </div>
+
+      <div class="dns-record">
+        <span>Tipo</span><strong>TXT</strong>
+        <span>Nombre / Host</span>
+        <code>_sebas-verification.{{ d.nombre }}</code>
+        <span>Valor</span><code>{{ d.token_verificacion }}</code>
+      </div>
+
+      <p class="preview-note">
+        Algunos proveedores solicitan solo el prefijo del registro TXT.
+        No agregues el dominio dos veces. La propagación DNS puede tardar.
+      </p>
+
+      <div class="detail-actions">
+        <button class="btn primary" type="button" (click)="verificar(d)"
+                [disabled]="verificando">
+          {{ verificando ? 'Verificando...' : 'Comprobar DNS TXT' }}
+        </button>
+        <button class="btn" type="button" (click)="editar(d)">Editar</button>
+        <button class="btn danger" type="button" (click)="prepararEliminar(d.id)">
+          Eliminar
+        </button>
+      </div>
+    </div>
+  </section>
+}
+
+@if (dominioPorEliminar; as d) {
+  <section class="card confirm-panel">
+    <h2>Confirmar eliminación</h2>
+    <p>¿Eliminar el dominio <strong>{{ d.nombre }}</strong> de esta plataforma?</p>
+    <p>Esta operación no elimina registros DNS del proveedor externo.</p>
+    <div class="form-actions">
+      <button class="btn" type="button" (click)="eliminarId = null">Volver</button>
+      <button class="btn danger" type="button" (click)="confirmarEliminar()"
+              [disabled]="eliminando">
+        {{ eliminando ? 'Eliminando...' : 'Sí, eliminar' }}
+      </button>
+    </div>
+  </section>
+}
+
+<section class="card">
+  <div class="toolbar">
+    <div class="field search">
+      <label for="buscarDom">Buscar dominio o tienda</label>
+      <input id="buscarDom" type="search" [(ngModel)]="busqueda"
+             (ngModelChange)="pagina = 0" placeholder="Buscar...">
+    </div>
+
+    <div class="field">
+      <label for="filtroTienda">Tienda</label>
+      <select id="filtroTienda" [(ngModel)]="filtroTienda" (ngModelChange)="pagina = 0">
+        <option value="TODAS">Todas</option>
+        @for (t of tiendas; track t.id) {
+          <option [value]="t.id">{{ t.nombre }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="filtroEstado">Estado</label>
+      <select id="filtroEstado" [(ngModel)]="filtroEstado" (ngModelChange)="pagina = 0">
+        <option value="TODOS">Todos</option>
+        <option value="PENDIENTE">Pendientes</option>
+        <option value="VERIFICADO_DNS">DNS verificados</option>
+        <option value="ERROR">Con error</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="ordenDom">Orden</label>
+      <select id="ordenDom" [(ngModel)]="orden" (ngModelChange)="pagina = 0">
+        <option value="recientes">Más recientes</option>
+        <option value="antiguos">Más antiguos</option>
+        <option value="nombre-asc">Dominio A-Z</option>
+        <option value="nombre-desc">Dominio Z-A</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="filter-footer">
+    <span class="muted">{{ filtrados.length }} dominios encontrados</span>
+    <button class="btn small" type="button" (click)="limpiarFiltros()">Limpiar filtros</button>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>DOMINIO</th>
+          <th>TIENDA</th>
+          <th>ESTADO</th>
+          <th>REGISTRO</th>
+          <th>ACCIONES</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (d of paginaDominios; track d.id) {
+          <tr>
+            <td class="strong">{{ d.nombre }}</td>
+            <td>{{ d.tienda }}</td>
+            <td><span class="badge" [ngClass]="d.estado">{{ textoEstado(d.estado) }}</span></td>
+            <td>{{ d.creado_en | date:'dd/MM/yyyy' }}</td>
+            <td>
+              <button class="btn small" type="button" (click)="verDetalle(d.id)">Ver</button>
+              <button class="btn small" type="button" (click)="editar(d)">Editar</button>
+            </td>
+          </tr>
+        } @empty {
+          <tr><td colspan="5" class="empty">No hay dominios registrados con estos filtros.</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <footer class="table-footer">
+    <span>Mostrando {{ desde }}–{{ hasta }} de {{ filtrados.length }}</span>
+    <div class="actions">
+      <button class="btn small" type="button" [disabled]="pagina === 0"
+              (click)="pagina = pagina - 1">Anterior</button>
+      <span>Página {{ pagina + 1 }} de {{ totalPaginas }}</span>
+      <button class="btn small" type="button" [disabled]="pagina + 1 >= totalPaginas"
+              (click)="pagina = pagina + 1">Siguiente</button>
+    </div>
+  </footer>
+</section>
